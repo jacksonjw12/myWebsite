@@ -5,29 +5,31 @@ var inTransition = "none";
 function turnTransOff(){
 	inTransition = "none";
 }
-
+var transitionSpeed = {"x":0,"y":0}
 
 function aboutMe(){
 	
 	var aboutMe = document.getElementById("aboutMe");
 	if(current != "aboutMe"){
 		inTransition = "left";
-		aboutMe.classList.remove('slideLeft')
+		aboutMe.classList.remove('slideOn')
 		aboutMe.classList.remove('slideRight')
 		document.getElementById("mainPage").classList.remove('slideOn');
 
 
-		mainPageSlideRight()
+		mainPageSlideLeft()
 
 
-		aboutMe.classList.add('slideRight')
+		aboutMe.classList.add('slideLeft')
 
 		aboutMe.classList.remove('hidden')
 		current = "aboutMe";
 	}
 	else{
 		inTransition = "right";
-		aboutMe.classList.add('slideLeft')
+		aboutMe.classList.remove('slideRight')
+
+		aboutMe.classList.add('slideOn')
 		mainPageSlideOn()
 		current = "main";
 
@@ -41,7 +43,7 @@ function contactMe(){
 
 	var contactMe = document.getElementById("contactMe");
 	if(current != "contactMe"){
-		inTransition = "left";
+		inTransition = "right";
 
 		contactMe.classList.remove('slideLeft')
 		contactMe.classList.remove('slideRight')
@@ -57,7 +59,7 @@ function contactMe(){
 		current = "contactMe";
 	}
 	else{
-		inTransition = "right";
+		inTransition = "left";
 
 		contactMe.classList.add('slideLeft')
 		mainPageSlideOn()
@@ -69,28 +71,30 @@ function contactMe(){
 }
 function projects(){
 	inTransition = true;
-
+	console.log(123);
 	var projects = document.getElementById("projects");
 	if(current != "projects"){
-		inTransition = "left";
+		inTransition = "down";
 
-		projects.classList.remove('slideLeft')
-		projects.classList.remove('slideRight')
+		projects.classList.remove('slideOn')
+		//projects.classList.remove('slideRight')
 		document.getElementById("mainPage").classList.remove('slideOn');
 
 
-		mainPageSlideRight()
+		mainPageSlideDown()
 
 
-		projects.classList.add('slideRight')
+		projects.classList.add('slideDown')
 
 		projects.classList.remove('hidden')
 		current = "projects";
 	}
 	else{
-		inTransition = "right";
+		inTransition = "up";
+		projects.classList.remove('slideDown')
+		//projects.classList.remove('slideRight')
+		projects.classList.add('slideOn')
 
-		projects.classList.add('slideLeft')
 		mainPageSlideOn()
 		current = "main";
 
@@ -109,9 +113,21 @@ function mainPageSlideLeft(){
 	document.getElementById("mainPage").classList.add('slideLeft');
 
 }
+function mainPageSlideUp(){
+	document.getElementById("mainPage").classList.add('slideUp');
+
+}
+function mainPageSlideDown(){
+	document.getElementById("mainPage").classList.add('slideDown');
+
+}
 function mainPageSlideOn(){
 	document.getElementById("mainPage").classList.add('slideOn');
 	document.getElementById("mainPage").classList.remove('slideRight');
+	document.getElementById("mainPage").classList.remove('slideLeft');
+
+	document.getElementById("mainPage").classList.remove('slideDown');
+
 	window.setTimeout(function(){document.getElementById("mainPage").classList.remove('slideOn');},1400)
 
 
@@ -154,13 +170,37 @@ var canvas = {"width":window.innerWidth,"height":window.innerHeight,"context":nu
 		var now = Date.now();
 		time.sinceLastStep = (now-time.lastStep)/1;
 		if(inTransition != "none"){
-			for(var p = 0; p< points.length; p++){
+			if(inTransition == "left"){
+				transitionSpeed.x = -300;
+
+			}
+			else if(inTransition == "right"){
+				transitionSpeed.x = 300;
+
+			}
+			else if(inTransition == "up"){
+				transitionSpeed.y = -300;
+
+			}
+			else if(inTransition == "down"){
+				transitionSpeed.y = 300;
+
+			}
+			/*for(var p = 0; p< points.length; p++){
 				if(inTransition == "left"){
 					points[p].velX = -300;
 
 				}
 				else if(inTransition == "right"){
 					points[p].velX = 300;
+
+				}
+				else if(inTransition == "up"){
+					points[p].velY = -300;
+
+				}
+				else if(inTransition == "down"){
+					points[p].velY = 300;
 
 				}
 				var dx = -mousePos.x +points[p].x;
@@ -173,6 +213,7 @@ var canvas = {"width":window.innerWidth,"height":window.innerHeight,"context":nu
 				var rad = Math.sqrt(dx*dx+dy*dy)
 				points[p].radius = rad/100// 800/(rad+40)
 				points[p].x += points[p].velX *1* time.sinceLastStep/1000 * points[p].speed*2;
+				points[p].y += points[p].velY *1* time.sinceLastStep/1000 * points[p].speed*2;
 				if(points[p].x > canvas.width){points[p].x = points[p].x % canvas.width}
 				else if(points[p].x < 0){points[p].x = canvas.width + points[p].x}
 				if(points[p].y > canvas.height){points[p].y = points[p].y % canvas.height}
@@ -181,42 +222,60 @@ var canvas = {"width":window.innerWidth,"height":window.innerHeight,"context":nu
 
 
 					
-			}
-		}
-		else{
-			for(var p = 0; p< points.length; p++){
-				var dx = -mousePos.x +points[p].x;
-				var dy = -mousePos.y + points[p].y;
-				if(dx == 0){dx = .01;}
-				if(dy == 0){dy = .01;}
-				
-				var unitX = dy
-				var unitY = -dx;
-				var rad = Math.sqrt(dx*dx+dy*dy)
-				points[p].radius = rad/100// 800/(rad+40)
-
-				if(rad < 3000){
-					points[p].velX = unitX/rad*20 - dx/Math.abs(dx);
-					points[p].velY = unitY/rad*20 - dy/Math.abs(dy);
-				}
-				else{
-					points[p].velX = 0;
-					points[p].velY = 0;
-				}
-				
-
-				points[p].x += points[p].velX * time.sinceLastStep/1000 * points[p].speed*2;
-				points[p].y += points[p].velY * time.sinceLastStep/1000 * points[p].speed*2;
-				if(points[p].x > canvas.width){points[p].x = points[p].x % canvas.width}
-				else if(points[p].x < 0){points[p].x = canvas.width + points[p].x}
-				if(points[p].y > canvas.height){points[p].y = points[p].y % canvas.height}
-				else if(points[p].y < 0){points[p].y = canvas.height + points[p].y}
-				
-			}
+			}*/
 		}
 		
+		for(var p = 0; p< points.length; p++){
+			var dx = -mousePos.x +points[p].x;
+			var dy = -mousePos.y + points[p].y;
+			if(dx == 0){dx = .01;}
+			if(dy == 0){dy = .01;}
 			
+			var unitX = dy
+			var unitY = -dx;
+			var rad = Math.sqrt(dx*dx+dy*dy)
+			points[p].radius = rad/100// 800/(rad+40)
+
+			if(rad < 3000){
+				points[p].velX = unitX/rad*20 - dx/Math.abs(dx) ;
+				points[p].velY = unitY/rad*20 - dy/Math.abs(dy) ;
+			}
+			else{
+				points[p].velX = 0;
+				points[p].velY = 0;
+			}
+			points[p].velX += transitionSpeed.x
+			points[p].velY += transitionSpeed.y
+
+			points[p].x += points[p].velX * time.sinceLastStep/1000 * points[p].speed*2;
+			points[p].y += points[p].velY * time.sinceLastStep/1000 * points[p].speed*2;
+			if(points[p].x > canvas.width){points[p].x = points[p].x % canvas.width}
+			else if(points[p].x < 0){points[p].x = canvas.width + points[p].x}
+			if(points[p].y > canvas.height){points[p].y = points[p].y % canvas.height}
+			else if(points[p].y < 0){points[p].y = canvas.height + points[p].y}
 			
+		}
+		
+		var deccelerationSpeed = 5;
+			
+		if(transitionSpeed.x != 0 && transitionSpeed.x > deccelerationSpeed){
+			transitionSpeed.x-=deccelerationSpeed;
+		}
+		else if(transitionSpeed.x != 0 && transitionSpeed.x < -deccelerationSpeed){
+			transitionSpeed.x+=deccelerationSpeed;
+		}
+		else if(transitionSpeed.x != 0){
+			transitionSpeed.x = 0;
+		}
+		if(transitionSpeed.y != 0 && transitionSpeed.y > deccelerationSpeed){
+			transitionSpeed.y-=deccelerationSpeed;
+		}
+		else if(transitionSpeed.y != 0 && transitionSpeed.y < -deccelerationSpeed){
+			transitionSpeed.y+=deccelerationSpeed;
+		}
+		else if(transitionSpeed.y != 0){
+			transitionSpeed.y = 0;
+		}
 
 
 
