@@ -15,9 +15,7 @@ i {
 
 .info {
 
-    -webkit-transform: translateY(10%);
-    -ms-transform: translateY(10%);
-    transform: translateY(10%);
+    margin-top:30px;
    
     text-align:center;
     font-size:15px;
