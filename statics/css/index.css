@@ -136,6 +136,10 @@ i {
     opacity:.5;
 }
 
+.clickable:hover {
+    color:white;
+    cursor:pointer;
+}
 
 .left:hover {
     color:white;
