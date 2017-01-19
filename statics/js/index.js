@@ -158,14 +158,17 @@ var canvas = {"width":window.innerWidth,"height":window.innerHeight,"context":nu
 
 	function step(){
 		
-		
+		updateSize()
 		doPhysics();
 		renderScene();
 		stepTimer++;
 		window.setTimeout(step,20)
 	}
 
+	function updateSize(){
+		//console.log(window.innerWidth)
 
+	}
 
 
 	function doPhysics(){
@@ -189,43 +192,6 @@ var canvas = {"width":window.innerWidth,"height":window.innerHeight,"context":nu
 				transitionSpeed.y = 200;
 
 			}
-			/*for(var p = 0; p< points.length; p++){
-				if(inTransition == "left"){
-					points[p].velX = -300;
-
-				}
-				else if(inTransition == "right"){
-					points[p].velX = 300;
-
-				}
-				else if(inTransition == "up"){
-					points[p].velY = -300;
-
-				}
-				else if(inTransition == "down"){
-					points[p].velY = 300;
-
-				}
-				var dx = -mousePos.x +points[p].x;
-				var dy = -mousePos.y + points[p].y;
-				if(dx == 0){dx = .01;}
-				if(dy == 0){dy = .01;}
-				
-				var unitX = dy
-				var unitY = -dx;
-				var rad = Math.sqrt(dx*dx+dy*dy)
-				points[p].radius = rad/100// 800/(rad+40)
-				points[p].x += points[p].velX *1* time.sinceLastStep/1000 * points[p].speed*2;
-				points[p].y += points[p].velY *1* time.sinceLastStep/1000 * points[p].speed*2;
-				if(points[p].x > canvas.width){points[p].x = points[p].x % canvas.width}
-				else if(points[p].x < 0){points[p].x = canvas.width + points[p].x}
-				if(points[p].y > canvas.height){points[p].y = points[p].y % canvas.height}
-				else if(points[p].y < 0){points[p].y = canvas.height + points[p].y}
-
-
-
-					
-			}*/
 		}
 		
 		for(var p = 0; p< points.length; p++){
