@@ -165,25 +165,28 @@ var canvas = {"width":window.innerWidth,"height":window.innerHeight,"context":nu
 		window.setTimeout(step,20)
 	}
 
+
+
+
 	function doPhysics(){
 		
 		var now = Date.now();
 		time.sinceLastStep = (now-time.lastStep)/1;
-		if(inTransition != "none"){
+		if(inTransition != "none" ){
 			if(inTransition == "left"){
-				transitionSpeed.x = -300;
+				transitionSpeed.x = -200;
 
 			}
 			else if(inTransition == "right"){
-				transitionSpeed.x = 300;
+				transitionSpeed.x = 200;
 
 			}
 			else if(inTransition == "up"){
-				transitionSpeed.y = -300;
+				transitionSpeed.y = -200;
 
 			}
 			else if(inTransition == "down"){
-				transitionSpeed.y = 300;
+				transitionSpeed.y = 200;
 
 			}
 			/*for(var p = 0; p< points.length; p++){
