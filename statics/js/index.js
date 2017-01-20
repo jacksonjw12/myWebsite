@@ -7,6 +7,23 @@ function turnTransOff(){
 }
 var transitionSpeed = {"x":0,"y":0}
 
+//mainPageSlideUp();
+window.setTimeout(start,20);
+function start(){
+	var mainPage = document.getElementById("mainPage");
+	mainPage.classList.add('slideUp')
+	window.setTimeout(setUpMainPage,1400);
+}
+function setUpMainPage(){
+	var mainPage = document.getElementById("mainPage");
+	mainPage.classList.add('mainPage')
+	mainPage.classList.remove('mainPageStart')
+	mainPage.classList.remove('slideUp')
+
+
+}
+
+
 function aboutMe(){
 	
 	var aboutMe = document.getElementById("aboutMe");
@@ -134,8 +151,8 @@ function mainPageSlideOn(){
 }
 
 
-
-var canvas = {"width":window.innerWidth,"height":window.innerHeight,"context":null}
+	
+	var canvas = {"width":window.innerWidth,"height":window.innerHeight,"context":null}
 	var c = document.getElementById("canvas")
 	c.width = canvas.width;
 	c.height = canvas.height;
@@ -148,7 +165,7 @@ var canvas = {"width":window.innerWidth,"height":window.innerHeight,"context":nu
 	var time = {"sinceLastStep":0,"lastStep":Date.now(),"startDate":Date.now()}
 	var stepTimer = 0;
 
-	for(var i = 0; i<80; i++){
+	for(var i = 0; i<480; i++){
 			points.push({"x":Math.random()*canvas.width,"y":Math.random()*canvas.width,"velX":0,"velY":0,"speed":1,"radius":4+ Math.random()})
 		}
 	function updateCoords(event){
@@ -172,24 +189,25 @@ var canvas = {"width":window.innerWidth,"height":window.innerHeight,"context":nu
 
 
 	function doPhysics(){
-		
+		var speed = 200
 		var now = Date.now();
 		time.sinceLastStep = (now-time.lastStep)/1;
 		if(inTransition != "none" ){
+			
 			if(inTransition == "left"){
-				transitionSpeed.x = -200;
+				transitionSpeed.x = -speed;
 
 			}
 			else if(inTransition == "right"){
-				transitionSpeed.x = 200;
+				transitionSpeed.x = speed;
 
 			}
 			else if(inTransition == "up"){
-				transitionSpeed.y = -200;
+				transitionSpeed.y = -speed;
 
 			}
 			else if(inTransition == "down"){
-				transitionSpeed.y = 200;
+				transitionSpeed.y = speed;
 
 			}
 		}
@@ -225,7 +243,7 @@ var canvas = {"width":window.innerWidth,"height":window.innerHeight,"context":nu
 			
 		}
 		
-		var deccelerationSpeed = 5;
+		var deccelerationSpeed = speed/50;
 			
 		if(transitionSpeed.x != 0 && transitionSpeed.x > deccelerationSpeed){
 			transitionSpeed.x-=deccelerationSpeed;
@@ -257,14 +275,18 @@ var canvas = {"width":window.innerWidth,"height":window.innerHeight,"context":nu
 
 
 	function renderScene(){
-		canvas.context.fillStyle = '#00bbbb'
+		canvas.context.fillStyle = '#00cfbb'//'#00bbbb'
 		canvas.context.fillRect(0,0,canvas.width,canvas.height);
 		canvas.context.fillStyle = 'white'
-		canvas.context.globalAlpha = 0.8 ;
+		canvas.context.globalAlpha = 0.6 ;
+		var prevPoint={"x":0,"y":0}
 		for(var p = 0; p<points.length; p++){
 			canvas.context.beginPath();
+			//canvas.context.globalAlpha = 1/points[p].radius ;
 			canvas.context.arc(points[p].x,points[p].y,points[p].radius,0,Math.PI*2,false);
 			canvas.context.fill();
+
+
 
 		}
 		canvas.context.globalAlpha = 1
