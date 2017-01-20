@@ -158,7 +158,7 @@ function mainPageSlideOn(){
 	canvas.context.fillStyle = 'black'
 	canvas.context.fillRect(0,0,canvas.width,canvas.height);
 	var points = [{"x":100,"y":100,"velX":0,"velY":0,"speed":1,"radius":4}];
-	var mousePos = {"x":canvas.context.width/2,"y":canvas.context.height/2};
+	var mousePos = {"x":canvas.width/2,"y":canvas.height/2};
 
 	var time = {"sinceLastStep":0,"lastStep":Date.now(),"startDate":Date.now()}
 	var stepTimer = 0;
