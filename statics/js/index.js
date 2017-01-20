@@ -1,7 +1,7 @@
 //I refuse to download jQuery 
 console.log("who needs jquery when you have spaghetti code");
 var current = "main";
-var inTransition = "none";
+var inTransition = "up";
 function turnTransOff(){
 	inTransition = "none";
 }
@@ -19,7 +19,7 @@ function setUpMainPage(){
 	mainPage.classList.add('mainPage')
 	mainPage.classList.remove('mainPageStart')
 	mainPage.classList.remove('slideUp')
-
+	inTransition = "none";
 
 }
 
@@ -56,7 +56,6 @@ function aboutMe(){
 
 }
 function contactMe(){
-	inTransition = true;
 
 	var contactMe = document.getElementById("contactMe");
 	if(current != "contactMe"){
@@ -87,7 +86,6 @@ function contactMe(){
 	window.setTimeout(turnTransOff, 1400);
 }
 function projects(){
-	inTransition = true;
 	console.log(123);
 	var projects = document.getElementById("projects");
 	if(current != "projects"){
@@ -160,14 +158,16 @@ function mainPageSlideOn(){
 	canvas.context.fillStyle = 'black'
 	canvas.context.fillRect(0,0,canvas.width,canvas.height);
 	var points = [{"x":100,"y":100,"velX":0,"velY":0,"speed":1,"radius":4}];
-	var mousePos = {"x":120,"y":100};
+	var mousePos = {"x":canvas.context.width/2,"y":canvas.context.height/2};
 
 	var time = {"sinceLastStep":0,"lastStep":Date.now(),"startDate":Date.now()}
 	var stepTimer = 0;
 
+
 	for(var i = 0; i<480; i++){
 			points.push({"x":Math.random()*canvas.width,"y":Math.random()*canvas.width,"velX":0,"velY":0,"speed":1,"radius":4+ Math.random()})
-		}
+	}
+
 	function updateCoords(event){
 		mousePos.x = event.clientX;
     	mousePos.y = event.clientY;
@@ -186,7 +186,6 @@ function mainPageSlideOn(){
 		//console.log(window.innerWidth)
 
 	}
-
 
 	function doPhysics(){
 		var speed = 200
@@ -283,7 +282,7 @@ function mainPageSlideOn(){
 		for(var p = 0; p<points.length; p++){
 			canvas.context.beginPath();
 			//canvas.context.globalAlpha = 1/points[p].radius ;
-			canvas.context.arc(points[p].x,points[p].y,points[p].radius,0,Math.PI*2,false);
+			canvas.context.arc(points[p].x,points[p].y,points[p].radius+1,0,Math.PI*2,false);
 			canvas.context.fill();
 
 
@@ -296,5 +295,5 @@ function mainPageSlideOn(){
 	}
 
 
-
+	inTransition = "up"
 	step();
