@@ -14,8 +14,50 @@ i {
 }
 
 
+.projectImage {
+    width:400px;height:200px;
+    opacity: 1;
+   transition: opacity .25s ease-in-out;
+   -moz-transition: opacity .25s ease-in-out;
+   -webkit-transition: opacity .25s ease-in-out;
+}
+.projectImage:hover {
+     opacity: 0.8;
+
+}
 
 
+.projectTitle {
+
+    position: relative;
+    top: 10%;
+    -webkit-transform: translateY(-20%);
+    -ms-transform: translateY(-15%);
+    transform: translateY(-15%);
+    text-align:center;
+    font-size:30px;
+
+    
+
+}
+
+.projects {
+
+    display: inline-block;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.projectsTop {
+     -webkit-transition-duration: 1400ms;
+    transition-duration: 1400ms;
+    background-color:black;width:400px;height:200px;
+
+}
+
+.projectsBottom {
+    background-color:black;width:400px;height:200px;
+}
 
 
 
