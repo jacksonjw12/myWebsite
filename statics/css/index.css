@@ -14,6 +14,46 @@ i {
 }
 
 
+.textOverImageText {
+    position:relative;
+    top:50px;
+    
+}
+
+.textOverImage {
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    cursor:pointer;
+
+
+    position:absolute;
+    /*text-align:center;*/
+    /*width:100%;*/
+    /*margin-left:-20px;*/
+    background-color:black;width:400px;height:200px;
+    opacity:.1;
+    transition: opacity .45s ease-in-out;
+   -moz-transition: opacity .45s ease-in-out;
+   -webkit-transition: opacity .45s ease-in-out;
+    /*display:none;*/
+}
+.textOverImage:hover {
+    background-color:black;
+    color:white;
+    position:absolute;
+    text-align:center;
+    margin:auto;
+    /*width:100%;*/
+    opacity:.8;
+    text-color:white;
+    /*margin-left:-20px;*/
+}
+
+
 .projectImage {
     width:400px;height:200px;
     opacity: 1;
@@ -22,7 +62,7 @@ i {
    -webkit-transition: opacity .25s ease-in-out;
 }
 .projectImage:hover {
-     opacity: 0.8;
+    
 
 }
 
@@ -56,7 +96,7 @@ i {
 }
 
 .projectsBottom {
-    background-color:black;width:400px;height:200px;
+    /*background-color:black;width:400px;height:200px;*/
 }
 
 
