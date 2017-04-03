@@ -235,10 +235,10 @@ function mainPageSlideOn(){
 
 			points[p].x += points[p].velX * time.sinceLastStep/1000 * points[p].speed*2;
 			points[p].y += points[p].velY * time.sinceLastStep/1000 * points[p].speed*2;
-			if(points[p].x > canvas.width){points[p].x = points[p].x % canvas.width}
-			else if(points[p].x < 0){points[p].x = canvas.width + points[p].x}
-			if(points[p].y > canvas.height){points[p].y = points[p].y % canvas.height}
-			else if(points[p].y < 0){points[p].y = canvas.height + points[p].y}
+			if(points[p].x > canvas.width+20){points[p].x = (points[p].x - canvas.width)*-1}
+			else if(points[p].x < -20){points[p].x = canvas.width + points[p].x*-1}
+			if(points[p].y > canvas.height+20){points[p].y = (points[p].y - canvas.height)*-1}
+			else if(points[p].y < -20){points[p].y = canvas.height + points[p].y*-1}
 			
 		}
 		

@@ -56,6 +56,9 @@ i {
 
 .projectImage {
     width:400px;height:200px;
+    
+    /*width:30%;height:10%;*/
+
     opacity: 1;
    transition: opacity .25s ease-in-out;
    -moz-transition: opacity .25s ease-in-out;
@@ -91,7 +94,8 @@ i {
 .projectsTop {
      -webkit-transition-duration: 1400ms;
     transition-duration: 1400ms;
-    background-color:black;width:400px;height:200px;
+    background-color:black;
+    width:400px;height:200px;
 
 }
 
