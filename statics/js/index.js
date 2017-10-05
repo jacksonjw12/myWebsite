@@ -12,6 +12,24 @@ window.setTimeout(start,20);
 function start(){
 	var mainPage = document.getElementById("mainPage");
 	mainPage.classList.add('slideUp')
+	
+
+	//my age
+	var d = new Date()
+	var currYear = d.getUTCFullYear()
+	var currMonth = d.getUTCMonth()
+	if(currMonth < 10){
+		currYear--;
+	}
+	var age = currYear - 1998
+
+	var ageText = document.getElementById("myAge")
+	ageText.innerHTML = age
+	//end my age
+
+
+
+
 	window.setTimeout(setUpMainPage,1400);
 }
 function setUpMainPage(){
@@ -20,6 +38,10 @@ function setUpMainPage(){
 	mainPage.classList.remove('mainPageStart')
 	mainPage.classList.remove('slideUp')
 	inTransition = "none";
+	document.getElementById("projects").classList.remove('tempHidden')
+	document.getElementById("contactMe").classList.remove('tempHidden')
+	document.getElementById("aboutMe").classList.remove('tempHidden')
+
 
 }
 

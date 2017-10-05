@@ -12,7 +12,9 @@ i {
    line-height: 60px;
    font-size:60px;
 }
-
+.tempHidden {
+    display: none;
+}
 
 .textOverImageText {
     position:relative;
