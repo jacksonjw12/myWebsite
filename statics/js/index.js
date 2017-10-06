@@ -317,6 +317,9 @@ function mainPageSlideOn(){
 		for(var p = 0; p<points.length; p++){
 			canvas.context.beginPath();
 			canvas.context.globalAlpha = 1/points[p].radius ;
+			if(points[p].radius < 1){
+				canvas.context.globalAlpha = 1
+			}
 			canvas.context.arc(points[p].x,points[p].y,points[p].radius+1,0,Math.PI*2,false);
 			canvas.context.fill();
 
