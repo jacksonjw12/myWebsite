@@ -40,7 +40,7 @@ function start() {
 	
 	var port = 8080;
 	if(process.platform == "linux"){
-		port = 8081
+		port = 8088
 	}
 
 	var server = app.listen(port);
