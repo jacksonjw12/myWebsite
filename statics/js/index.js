@@ -255,20 +255,38 @@ function mainPageSlideOn(){
 			var unitX = dy
 			var unitY = -dx;
 			var rad = Math.sqrt(dx*dx+dy*dy)
+			
+
 			points[p].radius = rad/100// 800/(rad+40)
 
 			if(rad < 3000){
-				points[p].velX = unitX/rad*20 - dx/Math.abs(dx) ;
-				points[p].velY = unitY/rad*20 - dy/Math.abs(dy) ;
+				if( points[p].speed <= 1 || transitionSpeed.x + transitionSpeed.y != 0){
+					points[p].velX = unitX/rad*20 - dx/Math.abs(dx) ;
+					points[p].velY = unitY/rad*20 - dy/Math.abs(dy) ;	
+				}
+				
 			}
 			else{
 				points[p].velX = 0;
 				points[p].velY = 0;
 			}
-			points[p].velX += transitionSpeed.x
+			
+			
+			if(rad < 30){
+				points[p].speed=1.5
+			}
+			else if(points[p].speed > 1){
+				points[p].speed -=.01
+			}
+			else{
+				points[p].speed = 1
+			}
+			points[p].velX += transitionSpeed.x 
 			points[p].velY += transitionSpeed.y
+			
+			
 
-			points[p].x += points[p].velX * time.sinceLastStep/1000 * points[p].speed*2;
+			points[p].x += points[p].velX * time.sinceLastStep/1000 * points[p].speed*2 ;
 			points[p].y += points[p].velY * time.sinceLastStep/1000 * points[p].speed*2;
 			if(points[p].x > canvas.width+20){points[p].x = (points[p].x - canvas.width)*-1}
 			else if(points[p].x < -20){points[p].x = canvas.width + points[p].x*-1}
@@ -278,6 +296,8 @@ function mainPageSlideOn(){
 		}
 		
 		var deccelerationSpeed = speed/50;
+		
+
 			
 		if(transitionSpeed.x != 0 && transitionSpeed.x > deccelerationSpeed){
 			transitionSpeed.x-=deccelerationSpeed;
