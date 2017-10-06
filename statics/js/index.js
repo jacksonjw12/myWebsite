@@ -1,5 +1,4 @@
 //I refuse to download jQuery 
-console.log("who needs jquery when you have spaghetti code");
 var current = "main";
 var inTransition = "up";
 function turnTransOff(){
@@ -176,6 +175,13 @@ function mainPageSlideOn(){
 	var c = document.getElementById("canvas")
 	c.width = canvas.width;
 	c.height = canvas.height;
+	window.addEventListener('resize', function(){
+		canvas.width = window.innerWidth
+		canvas.height = window.innerHeight
+		c.width = canvas.width;
+		c.height = canvas.height;
+	}, false);
+
 	canvas.context = c.getContext('2d');
 	canvas.context.fillStyle = 'black'
 	canvas.context.fillRect(0,0,canvas.width,canvas.height);
@@ -197,22 +203,24 @@ function mainPageSlideOn(){
 
 	function step(){
 		
-		updateSize()
 		doPhysics();
 		renderScene();
 		stepTimer++;
-		window.setTimeout(step,20)
+		window.requestAnimationFrame(step)
 	}
 
 	function updateSize(){
 		//console.log(window.innerWidth)
-
+		canvas.width = window.innerWidth
 	}
 
 	function doPhysics(){
 		var speed = 200
 		var now = Date.now();
 		time.sinceLastStep = (now-time.lastStep)/1;
+		if(time.sinceLastStep > 50){
+			time.sinceLastStep = 0
+		}
 		if(inTransition != "none" ){
 			
 			if(inTransition == "left"){
