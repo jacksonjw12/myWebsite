@@ -22,8 +22,9 @@ function start() {
 	app.get('/resume', function(req,res) {
 		request('http://docs.google.com/document/d/1UfJi7kSP_alS7ct90PUQOBx-cXET3iEQP7ekGsALA8Q/export?format=html', function (error, response, body) {
 		  if (!error && response.statusCode == 200) {
-		    string = body; // Show the HTML for the Google homepage. 
-		    console.log(body)
+		    string = body; // Show the HTML for the Google homepage.
+		    var d = new Date() 
+		    console.log("got new resume on " + d )
 		    res.send(body)
 		  }
 		  else {

@@ -107,7 +107,8 @@ function contactMe(){
 	window.setTimeout(turnTransOff, 1400);
 }
 function projects(){
-	console.log(123);
+	document.getElementById("projectTitle").classList.remove('projectsHidden')
+
 	var projects = document.getElementById("projects");
 	if(current != "projects"){
 		inTransition = "down";
@@ -158,13 +159,17 @@ function mainPageSlideDown(){
 
 }
 function mainPageSlideOn(){
+
 	document.getElementById("mainPage").classList.add('slideOn');
 	document.getElementById("mainPage").classList.remove('slideRight');
 	document.getElementById("mainPage").classList.remove('slideLeft');
 
 	document.getElementById("mainPage").classList.remove('slideDown');
 
-	window.setTimeout(function(){document.getElementById("mainPage").classList.remove('slideOn');},1400)
+	window.setTimeout(function(){
+		document.getElementById("mainPage").classList.remove('slideOn');
+		document.getElementById("projectTitle").classList.add('projectsHidden')
+},1400)
 
 
 }
@@ -183,7 +188,7 @@ function mainPageSlideOn(){
 	}, false);
 
 	canvas.context = c.getContext('2d');
-	canvas.context.fillStyle = 'black'
+	canvas.context.fillStyle = '#00cfbb'
 	canvas.context.fillRect(0,0,canvas.width,canvas.height);
 	var points = [{"x":100,"y":100,"velX":0,"velY":0,"speed":1,"radius":4}];
 	var mousePos = {"x":canvas.width/2,"y":canvas.height/2};
@@ -311,7 +316,7 @@ function mainPageSlideOn(){
 		var prevPoint={"x":0,"y":0}
 		for(var p = 0; p<points.length; p++){
 			canvas.context.beginPath();
-			//canvas.context.globalAlpha = 1/points[p].radius ;
+			canvas.context.globalAlpha = 1/points[p].radius ;
 			canvas.context.arc(points[p].x,points[p].y,points[p].radius+1,0,Math.PI*2,false);
 			canvas.context.fill();
 
