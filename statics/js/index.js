@@ -7,7 +7,11 @@ function turnTransOff(){
 var transitionSpeed = {"x":0,"y":0}
 
 //mainPageSlideUp();
-window.setTimeout(start,20);
+window.onload = function(){
+	document.body.removeAttribute("style")
+	window.setTimeout(start,20);
+}
+
 function start(){
 	var mainPage = document.getElementById("mainPage");
 	mainPage.classList.add('slideUp')
