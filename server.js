@@ -11,6 +11,7 @@ function start() {
 	
 
 	app.use(express.static(__dirname + '/statics'));
+	app.use(express.static(__dirname + '/grandma'));
 
 	app.get('/', function (req, res) {
 		res.sendFile(__dirname + '/statics/index.html')
@@ -36,6 +37,9 @@ function start() {
 
 
 		
+	})
+	app.get('/grandma',function(req,res){
+		res.sendFile(__dirname + '/grandma/index.html')
 	})
 	
 	var port = 8080;
