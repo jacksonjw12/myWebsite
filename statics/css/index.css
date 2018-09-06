@@ -336,10 +336,10 @@ i {
     text-align:center;
 }
 .socialIcons {
-    font-size:30px;
+    font-size:35px;
     width:100%;
     position: relative;
-    top: 70%;
+    top: 65%;
     -webkit-transform: translateY(-50%);
     -ms-transform: translateY(-50%);
     transform: translateY(-50%);
@@ -385,7 +385,7 @@ i {
     font-size:50px;
     width:100%;
     position: relative;
-    top: 70%;
+    top: 65%;
     -webkit-transform: translateY(-50%);
     -ms-transform: translateY(-50%);
     transform: translateY(-50%);
