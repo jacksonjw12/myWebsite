@@ -7,7 +7,7 @@ canvas {
 body {
     margin:0;
     position: fixed;
-    background-color: #00cfbb; 
+    background-color: white;/*#00cfbb;*/
 }
 i {
    line-height: 60px;
@@ -20,7 +20,7 @@ i {
 .textOverImageText {
     position:relative;
     top:50px;
-    
+
 }
 
 .textOverImage {
@@ -59,7 +59,7 @@ i {
 
 .projectImage {
     width:400px;height:200px;
-    
+
     /*width:30%;height:10%;*/
 
     opacity: 1;
@@ -68,7 +68,7 @@ i {
    -webkit-transition: opacity .25s ease-in-out;
 }
 .projectImage:hover {
-    
+
 
 }
 
@@ -83,7 +83,7 @@ i {
     text-align:center;
     font-size:30px;
 
-    
+
 
 }
 
@@ -130,27 +130,60 @@ i {
         color:black;
     }
 
-   
+
+}
+.tooltip {
+    position: relative;
+    display: inline-block;
 }
 
+.tooltip .tooltiptext {
+    font-size:15;
+    visibility: hidden;
+    width: 140px;
+    background-color: #555;
+    color: #fff;
+    text-align: center;
+    border-radius: 6px;
+    padding: 5px;
+    position: absolute;
+    z-index: 1;
+    bottom: 70%;
+    left: 50%;
+    margin-left: -75px;
+    opacity: 0;
+    transition: opacity 0.3s;
+}
+
+.tooltip .tooltiptext::after {
+    content: "";
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    margin-left: -5px;
+    border-width: 5px;
+    border-style: solid;
+    border-color: #555 transparent transparent transparent;
+}
+
+.tooltip:hover .tooltiptext {
+    visibility: visible;
+    opacity: 1;
+}
 .email {
-    animation-duration: 6s;
-    animation-name: changeColor;
-    animation-iteration-count: infinite;
-    animation-direction: alternate;
+    color:black;
+    transition-duration:200ms;
+
 }
 .email:hover {
-    animation-duration: .8s;
-    animation-name: changeColor;
-    animation-iteration-count: infinite;
-    animation-direction: alternate;
-    border:1px solid red;
+    color:teal;
+    transition-duration:200ms;
 }
 
 .info {
 
     margin-top:30px;
-   
+
     text-align:center;
     font-size:15px;
 
@@ -231,8 +264,8 @@ i {
     text-align:center;
     padding-top:5%;
 }
-.title {  
-    
+.title {
+
 
     position: relative;
     top: 25%;
@@ -243,16 +276,15 @@ i {
     font-size:30px;
 }
 .lower {
-    font-size:14px;
-    font-size:30px;
+        font-size: 14px;
+        font-size: 30px;
 
-}
+    }
 .courier {
     font-weight: lighter;
     font-family: courier new;
-    
-}
 
+}
 .buttons {
     width:100%;
     position: relative;
@@ -274,27 +306,118 @@ i {
     opacity:.5;
 }
 
+.left{float:left;width:100px;margin-left:25%;}
+.right{float:right;width:100px;margin-right:25%;}
+.center{margin:0 auto;width:100px;}
+
+@media only screen and (max-device-width: 480px) {
+.header{
+    font-size:100px;
+}
+.lower{
+    font-size:50px;
+}
+
+
+.courier {
+    font-weight: lighter;
+    font-family: courier new;
+
+
+}
+.buttons {
+    width:100%;
+    position: relative;
+    top: 40%;
+    font-size:40px;
+    -webkit-transform:   translateY(-50%);
+    -ms-transform: translateY(-50%);
+    transform: translateY(-50%);
+    text-align:center;
+}
+.socialIcons {
+    font-size:30px;
+    width:100%;
+    position: relative;
+    top: 70%;
+    -webkit-transform: translateY(-50%);
+    -ms-transform: translateY(-50%);
+    transform: translateY(-50%);
+    text-align:center;
+    opacity:.5;
+}
+
+.left{float:left;width:300px;margin-left:2%;}
+.right{float:right;width:300px;margin-right:2%;}
+.center{margin:0 auto;width:0px;}
+
+.aboutMeBlock{
+    font-size:40px;
+    background-color:white;
+}
+.aboutMeTitle{
+    margin-top:12%
+}
+.backButton{
+    font-size:40px;
+}
+.email{
+    font-size:50px;
+    margin-bottom:15%;
+}
+
+
+@media only screen and (min-device-height: 800px) {
+    .header{
+        font-size:120px;
+    }
+    .buttons {
+    width:100%;
+    position: relative;
+    top: 40%;
+    font-size:40px;
+    -webkit-transform:   translateY(-50%);
+    -ms-transform: translateY(-50%);
+    transform: translateY(-50%);
+    text-align:center;
+}
+.socialIcons {
+    font-size:50px;
+    width:100%;
+    position: relative;
+    top: 70%;
+    -webkit-transform: translateY(-50%);
+    -ms-transform: translateY(-50%);
+    transform: translateY(-50%);
+    text-align:center;
+    opacity:.5;
+}
+
+
+
+}
+
+}
+
+
+
 .clickable:hover {
-    color:white;
+    color:teal;
     cursor:pointer;
 }
 
 .left:hover {
-    color:white;
+    color:teal;
     cursor:pointer;
 }
 .right:hover{
-    color:white;
+    color:teal;
     cursor:pointer;
 }
 
 .center:hover {
-    color:white;
-    cursor:pointer;
+    cursor:default;
 }
 
-.left{float:left;width:100px;margin-left:25%;}
-.right{float:right;width:100px;margin-right:25%;}
-.center{margin:0 auto;width:100px;}
 
 

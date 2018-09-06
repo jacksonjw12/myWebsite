@@ -1,4 +1,4 @@
-//I refuse to download jQuery 
+//I refuse to download jQuery
 var current = "main";
 var inTransition = "up";
 function turnTransOff(){
@@ -15,7 +15,7 @@ window.onload = function(){
 function start(){
 	var mainPage = document.getElementById("mainPage");
 	mainPage.classList.add('slideUp')
-	
+
 
 	//my age
 	var d = new Date()
@@ -50,7 +50,7 @@ function setUpMainPage(){
 
 
 function aboutMe(){
-	
+
 	var aboutMe = document.getElementById("aboutMe");
 	if(current != "aboutMe"){
 		inTransition = "left";
@@ -179,7 +179,7 @@ function mainPageSlideOn(){
 }
 
 
-	
+
 	var canvas = {"width":window.innerWidth,"height":window.innerHeight,"context":null}
 	var c = document.getElementById("canvas")
 	c.width = canvas.width;
@@ -201,7 +201,7 @@ function mainPageSlideOn(){
 	var stepTimer = 0;
 
 
-	for(var i = 0; i<480; i++){
+	for(var i = 0; i<240; i++){
 			points.push({"x":Math.random()*canvas.width,"y":Math.random()*canvas.width,"velX":0,"velY":0,"speed":1,"radius":4+ Math.random()})
 	}
 
@@ -211,7 +211,7 @@ function mainPageSlideOn(){
 	}
 
 	function step(){
-		
+
 		doPhysics();
 		renderScene();
 		stepTimer++;
@@ -231,7 +231,7 @@ function mainPageSlideOn(){
 			time.sinceLastStep = 0
 		}
 		if(inTransition != "none" ){
-			
+
 			if(inTransition == "left"){
 				transitionSpeed.x = -speed;
 
@@ -249,33 +249,33 @@ function mainPageSlideOn(){
 
 			}
 		}
-		
+
 		for(var p = 0; p< points.length; p++){
 			var dx = -mousePos.x +points[p].x;
 			var dy = -mousePos.y + points[p].y;
 			if(dx == 0){dx = .01;}
 			if(dy == 0){dy = .01;}
-			
+
 			var unitX = dy
 			var unitY = -dx;
 			var rad = Math.sqrt(dx*dx+dy*dy)
-			
+
 
 			points[p].radius = rad/100// 800/(rad+40)
 
 			if(rad < 3000){
 				if( points[p].speed <= 1 || transitionSpeed.x + transitionSpeed.y != 0){
 					points[p].velX = unitX/rad*20 - dx/Math.abs(dx) ;
-					points[p].velY = unitY/rad*20 - dy/Math.abs(dy) ;	
+					points[p].velY = unitY/rad*20 - dy/Math.abs(dy) ;
 				}
-				
+
 			}
 			else{
 				points[p].velX = 0;
 				points[p].velY = 0;
 			}
-			
-			
+
+
 			if(rad < 30){
 				points[p].speed=1.5
 			}
@@ -285,10 +285,10 @@ function mainPageSlideOn(){
 			else{
 				points[p].speed = 1
 			}
-			points[p].velX += transitionSpeed.x 
+			points[p].velX += transitionSpeed.x
 			points[p].velY += transitionSpeed.y
-			
-			
+
+
 
 			points[p].x += points[p].velX * time.sinceLastStep/1000 * points[p].speed*2 ;
 			points[p].y += points[p].velY * time.sinceLastStep/1000 * points[p].speed*2;
@@ -296,13 +296,13 @@ function mainPageSlideOn(){
 			else if(points[p].x < -20){points[p].x = canvas.width + points[p].x*-1}
 			if(points[p].y > canvas.height+20){points[p].y = (points[p].y - canvas.height)*-1}
 			else if(points[p].y < -20){points[p].y = canvas.height + points[p].y*-1}
-			
-		}
-		
-		var deccelerationSpeed = speed/50;
-		
 
-			
+		}
+
+		var deccelerationSpeed = speed/50;
+
+
+
 		if(transitionSpeed.x != 0 && transitionSpeed.x > deccelerationSpeed){
 			transitionSpeed.x-=deccelerationSpeed;
 		}
@@ -324,7 +324,7 @@ function mainPageSlideOn(){
 
 
 
-		
+
 
 		time.lastStep = now;
 
@@ -333,9 +333,9 @@ function mainPageSlideOn(){
 
 
 	function renderScene(){
-		canvas.context.fillStyle = '#00cfbb'//'#00bbbb'
+		canvas.context.fillStyle = '#fefefe'//'white'//'#00cfbb'//'#00bbbb'
 		canvas.context.fillRect(0,0,canvas.width,canvas.height);
-		canvas.context.fillStyle = 'white'
+		canvas.context.fillStyle = 'black'
 		canvas.context.globalAlpha = 0.6 ;
 		var prevPoint={"x":0,"y":0}
 		for(var p = 0; p<points.length; p++){
@@ -353,7 +353,7 @@ function mainPageSlideOn(){
 		canvas.context.globalAlpha = 1
 
 
-		
+
 	}
 
 

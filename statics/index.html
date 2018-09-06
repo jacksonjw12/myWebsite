@@ -2,7 +2,7 @@
 <head>
 	<link rel="stylesheet" type="text/css" href="css/index.css">
 	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
-	
+
 </head>
 
 <body style="display:none" onmousemove="updateCoords(event)">
@@ -15,7 +15,7 @@
 		<h3 class="lower courier">To Jackson Wheeler's Website</h3>
 	</div>
 	<div class="buttons courier">
-	<a class="left" onclick="javascript:contactMe()"><u>Contact Me</u></a><a onclick="javascript:projects()" class="center"><u>Projects</u></a><a onclick="javascript:aboutMe()" class="right"><u>About Me</u></a>
+	<a class="left" onclick="javascript:contactMe()"><u>Contact Me</u></a><a style="width:10px;height:10px;" onclick="" class="center">&nbsp;</a><a onclick="javascript:aboutMe()" class="right"><u>About Me</u></a>
 	</div>
 	<div class="socialIcons courier">
 	<a class="left" onclick="location.href='https://www.linkedin.com/in/jacksonjwheeler'"><i class="fa fa-linkedin fa-3x" ></i></a><a class="center fa-3x"><i onclick="location.href='https://github.com/jacksonjw12/'" class="fa fa-github"></i></a><a class="right fa-3x"><i onclick="location.href='https://www.facebook.com/jackson.wheeler.3'" class="fa fa-facebook"></i></a>
@@ -38,17 +38,17 @@
 				<p> I am always on the lookout for internships and other opportunities</p>
 				<p><a href='/resume' class="clickable"> Here's</a> a link to my resume for further information</p>
 			</div>
-		<a class="center" onclick="javascript:aboutMe()"><- Back </a>
+		<a class="center backButton" onclick="javascript:aboutMe()"><- Back </a>
 		</div>
 	</div>
-	
+
 
 </div>
 
 <div id="projects" class="tempHidden">
 
 	<div id = "projectTitle" class="projectTitle courier projectsHidden">
-		
+
 		<h1 class="header courier">Projects </h1>
 		<div class="projectsContainer">
 			<div id="projectsTop">
@@ -66,29 +66,73 @@
 		</div>
 		<a class="center" onclick="javascript:projects()">Back</a>
 	</div>
-	
-	
-	
+
+
+
 
 </div>
 <div id="contactMe" class="tempHidden">
 
 	<div class="title courier">
-		
-		<h1 class="header courier">contact Me </h1>
-		<h3 >email:  <span class="email">jacksonjerrywheeler@gmail.com</span>  </h3>
 
-		<a class="center" onclick="javascript:contactMe()"> Back -></a>
+		<h1 class="header courier">Contact Me </h1>
+
+		<div class="tooltip" onclick="myFunction()" onmouseout="outFunc()"><h3><span class="tooltiptext" id="myTooltip">Copy to clipboard</span><p id="myEmail" class="email">jacksonjerrywheeler@gmail.com</p>  </h3></div>
+		<br>
+		<a class="center backButton" onclick="javascript:contactMe()"> Back -></a>
 	</div>
-	
-	
-	
+
+
+
 
 </div>
 
 
-
-
 </body>
 <script src="js/index.js"></script>
+<script>
+function myFunction() {
+	var success = copyTextToClipboard("jacksonjerrywheeler@gmail.com");
+	var tooltip = document.getElementById("myTooltip");
+	tooltip.innerHTML = success?"Copied!":"Unable to Copy";
+}
+function outFunc() {
+	var tooltip = document.getElementById("myTooltip");
+	tooltip.innerHTML = "Copy to clipboard";
+}
+
+function fallbackCopyTextToClipboard(text) {
+	var textArea = document.createElement("textarea");
+	textArea.value = text;
+	document.body.appendChild(textArea);
+	textArea.focus();
+	textArea.select();
+
+	try {
+	var successful = document.execCommand('copy');
+	var msg = successful ? 'successful' : 'unsuccessful';
+	console.log('trying to copy');
+	} catch (err) {
+		console.error(' Unable to copy', err);
+		return false;
+	}
+
+  document.body.removeChild(textArea);
+	return true;
+}
+function copyTextToClipboard(text) {
+  if (!navigator.clipboard) {
+    return fallbackCopyTextToClipboard(text);
+  }
+  return navigator.clipboard.writeText(text).then(function() {
+    //console.log('Async: Copying to clipboard was successful!');
+	  return true;
+  }, function(err) {
+    console.error('Unable to copy ', err);
+    return false;
+  });
+}
+
+
+</script>
 </html>
