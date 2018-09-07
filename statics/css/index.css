@@ -418,6 +418,10 @@ i {
 .center:hover {
     cursor:default;
 }
+.centerLower:hover{
+    cursor:pointer;
+    color:teal;
+}
 
 
 
