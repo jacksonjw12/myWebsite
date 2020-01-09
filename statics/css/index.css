@@ -194,8 +194,11 @@ i {
 }
 
 .profileImage {
-    min-width:200px;
-    width:14%;
+   
+    min-width: 200px;
+    min-height: 200px;
+    width: 15vw;
+    height: 15vw;
     
 }
 
