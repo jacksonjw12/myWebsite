@@ -2,11 +2,16 @@
 
   <body>
     <div id="loadingtext"><h1>Retrieving Resume from Google Drive...</h1></div>
+    
   </body>
 
   <script>
 
-    fetch("https://docs.google.com/document/export?format=pdf&id=1UfJi7kSP_alS7ct90PUQOBx-cXET3iEQP7ekGsALA8Q&token=AC4w5VjAz3R", {})
+   loadResume();
+
+
+    function loadResume(){
+      fetch("https://docs.google.com/document/export?format=pdf&id=1UfJi7kSP_alS7ct90PUQOBx-cXET3iEQP7ekGsALA8Q&token=AC4w5VjAz3R", {})
     .then(r => r.blob())
       .then((r)=>{
         if (window.navigator && window.navigator.msSaveOrOpenBlob) {
@@ -15,6 +20,8 @@
         var fileURL = URL.createObjectURL(r);
         window.location = fileURL;
       })
+    }
+    
 
   </script>
 
