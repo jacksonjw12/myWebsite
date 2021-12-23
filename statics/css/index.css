@@ -420,7 +420,8 @@ i {
 }
 
 .center:hover {
-    cursor:default;
+    color:teal;
+    cursor:pointer;
 }
 .centerLower:hover{
     cursor:pointer;
