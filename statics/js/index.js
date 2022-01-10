@@ -357,7 +357,7 @@ function renderScene(){
 	canvas.context.fillRect(0,0,canvas.width,canvas.height);
 	canvas.context.fillStyle = 'black'
 	canvas.context.globalAlpha = 0.6 ;
-	var prevPoint={"x":0,"y":0}
+	// var prevPoint={"x":0,"y":0}
 	let rad = Math.PI*2;
 	for(var p = 0; p<points.length; p++){
 		let point = points[p]
