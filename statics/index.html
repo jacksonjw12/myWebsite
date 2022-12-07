@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<script src="./noise.js" ></script>
+		<meta name="viewport" content="width=device-width, height=device-height">
+
+	</head>
+<style>
+
+	body {
+		margin: 0;
+		padding: 0;
+		max-height:100vh;
+		height: 100vh;
+		overflow-y:clip;
+		overflow:hidden;
+
+	}
+
+	.not-selectable {
+		-webkit-touch-callout: none;
+		-webkit-user-select: none;
+		-khtml-user-select: none;
+		-moz-user-select: none;
+		-ms-user-select: none;
+		user-select: none;
+	}
+
+	#settings {
+		pointer-events: none;
+		width:100%;
+		height:100vh;
+		position:absolute;
+		top: 0;
+		left: 0;
+
+	}
+
+	.gearIcon {
+		pointer-events: auto; 
+		font-size: 3em;
+		float:right;
+	}
+
+	#message {
+		pointer-events: none;
+		width:100%;
+		height:100vh;
+		position:absolute;
+		top: 0;
+		left: 0;
+		display:none;
+		flex-direction:column;
+		justify-items: center;
+		align-items:center;
+	}
+
+	.messageBox {
+		pointer-events: auto; 
+		min-width:10%;
+		width: fit-content;
+		background-color:white;
+/*		width:30%;*/
+		height:2em;
+		border:1px solid black;
+		padding:1em;
+		margin:1em;
+		text-align:center;
+		padding-bottom:0.5em;
+	}
+
+	canvas {
+		z-index: -1;
+		/*width:100%;
+		height:100vh;*/
+		position:absolute;
+		top: 0;
+		left: 0;
+		
+	}
+
+	.profileImage {
+		width:auto;
+		height:12em;
+		float:right;
+	}
+
+	.socialsColumn {
+		display:flex;
+		height:inherit;
+		flex-direction: column;
+		justify-content:space-around;
+
+		margin-left:1em;
+		margin-right:1em;
+
+
+	}
+
+	.socialImage {
+		width:3em;;
+		height:3em;
+/*		margin-bottom:3em;*/
+		border:1px solid transparent;
+		border-radius:0.5em;
+		padding:0.5em;
+	}
+
+	.socialImage:hover {
+		background-color: #999;
+		cursor:pointer;
+	}
+
+
+	#mainPage {
+		margin:1em;
+		padding:0.5em;
+		background-color: rgba(255,255,255,0.9);
+		display:block;
+		flex-direction: column;
+		align-items:left;
+/*		flex-shrink:1;*/
+		width:fit-content;
+/*		min-width: auto*/
+/*		max-width:50%;*/
+		border:2px dashed #aaa;
+	}
+
+	
+</style>
+<body>
+
+<div id="mainPage" class="mainPageStart">
+
+	<div class="title courier">
+		<h1 class="header courier"> Welcome </h1>
+		<h3 class="lower courier">To Jackson Wheeler's Website</h3>
+	</div>
+	<div class="socialIcons courier">
+	<a class="left" onclick="location.href='https://www.linkedin.com/in/jacksonjwheeler'"><i class="fa fa-linkedin fa-3x" ></i></a><a class="center centerLower fa-3x"><i onclick="location.href='https://github.com/jacksonjw12/'" class="fa fa-github"></i></a><a class="right fa-3x"><i onclick="location.href='https://www.facebook.com/jackson.wheeler.3'" class="fa fa-facebook"></i></a>
+	</div>
+
+	<div class="aboutMeTitle courier">
+		<div style="display:flex;justify-content:left; margin-left:1em">
+			<img src="./media/profile7.jpg" class="profileImage">
+			<div class="socialsColumn">
+				<a href='https://github.com/jacksonjw12/' ><img src="./media/github.png" class="socialImage"></a>
+				<a href='https://www.linkedin.com/in/jacksonjwheeler' ><img src="./media/linkedIn.png" class="socialImage"></a>
+			</div>
+		</div>
+		<h1 class="header courier"> About Me </h1>
+		<div class="courier info">
+			<div class="aboutMeBlock">
+				<p>I'm currently working as a Software Engineer at YouTube</b> </p>
+				<p> In my free time you will find me hiking or playing board games with friends </p>
+				<p><a href='./media/resume.pdf' class="clickable"> Here's</a> a link to my resume for further information</p>
+			</div>
+		</div>
+	</div>
+
+	<div class="title courier">
+
+		<h1 class="header courier">Contact Me </h1>
+
+		<b><p id="myEmail" class="email">jacksonjerrywheeler@gmail.com</p></b>
+		<br>
+	</div>
+
+
+</div>
+
+<canvas id="canvas">
+Your browser does not support the HTML canvas tag.</canvas>
+
+<div id="settings"><div class="gearIcon not-selectable" id="changeMode">🌀</div></div>
+
+<div id="message"><div class="messageBox" id="messageBox">Message</div></div>
+
+</body>
+
+
+<script src="./messages.js" ></script>
+
+
+<script src="./main.js" ></script>
+
+<script>
+	console.log(456);
+</script>
+
+</html>
+
