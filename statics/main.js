@@ -86,7 +86,9 @@ const gameSettings = [
 
 ]
 
-let gameIndex = Math.round(Math.random() * 1000) % gameSettings.length;
+const usePoints = Math.random() > 0.5;
+
+let gameIndex = Math.round(Math.random() * 1000) % (gameSettings.length - 1); // dont give fast as the first option
 console.log(gameIndex)
 let settings = {...commonSettings, ...gameSettings[gameIndex]};
 console.log("Mode", settings.name);
@@ -159,13 +161,14 @@ function render(dt) {
 	}
 
 	canvas.ctx.fillStyle = "rgba(0,0,0,0.8)"
+	if(usePoints) {
+		for(let p = 0; p < state.points.length; p++) {
+        		const point = state.points[p];
+               		canvas.ctx.beginPath();
+                	canvas.ctx.arc(point.x, point.y, 10, 0, settings.rad);
+                	canvas.ctx.fill();
+	        }
 
-	for(let p = 0; p < state.points.length; p++) {
-		const point = state.points[p];
-		// canvas.ctx.beginPath();
-
-		// canvas.ctx.arc(point.x, point.y, 10, 0, settings.rad);
-		// canvas.ctx.fill();
 	}
 
 }
