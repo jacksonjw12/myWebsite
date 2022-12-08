@@ -411,6 +411,7 @@ let fpsWindowSize = 10;
 let fpsSum = 0;
 let fpsWindow = [];
 let tickNum = 0;
+let shownFps = undefined;
 function tick(timeMillis) {
 	
 	state.timeMillis = timeMillis;
@@ -439,8 +440,12 @@ function tick(timeMillis) {
 		}
 
 		fpsAvg = Math.round(fpsSum / fpsWindow.length * 100) / 100;
-		if(state.showFpsCounter && tickNum % 15 === 0) {
-			canvas.ctx.strokeStyle = "teal";
+		if(tickNum % 10 === 0) {
+			shownFps = fpsAvg;
+		}
+
+		if(state.showFpsCounter && shownFps !== undefined) {
+			canvas.ctx.fillStyle = "teal";
 			canvas.ctx.fontStyle = "bold 48px serif";
 			canvas.ctx.fillText(fpsAvg, 10, 10);
 		}
