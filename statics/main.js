@@ -438,8 +438,8 @@ function tick(timeMillis) {
 			fpsSum -= bootedFpsNum;
 		}
 
-		fpsAvg = fpsSum / fpsWindow.length;
-		if(state.showFpsCounter) {
+		fpsAvg = Math.round(fpsSum / fpsWindow.length * 100) / 100;
+		if(state.showFpsCounter && tickNum % 15 === 0) {
 			canvas.ctx.strokeStyle = "teal";
 			canvas.ctx.fontStyle = "bold 48px serif";
 			canvas.ctx.fillText(fpsAvg, 10, 10);
