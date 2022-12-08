@@ -385,7 +385,7 @@ function update(dtMillis, isAntiGrav) {
 				point.velX *= -1;
 			}
 			else {
-				point.x = canvas.width + point.x + settings.offscreenBufferSize * 2;
+				point.x = point.x - canvas.width - settings.offscreenBufferSize * 2;
 			}
 			point.velX *= settings.wallFriction;
 
