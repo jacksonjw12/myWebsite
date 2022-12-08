@@ -407,8 +407,9 @@ function update(dtMillis, isAntiGrav) {
 	}
 
 }
-
-let tickNum = 0;
+let fpsWindowSize = 10;
+let fpsSum = 0;
+let fpsWindow = [];
 function tick(timeMillis) {
 	
 	state.timeMillis = timeMillis;
@@ -426,10 +427,27 @@ function tick(timeMillis) {
 	update(dtMillis, isAntiGrav);
 	render();
 
+	let fpsAvg = undefined;
+	if(dtMillis > 0) {
+		const fps = 1000.0 / dtMillis;
+		fpsWindow.push(fps);
+		fpsSum += fps;
+		if(fpsWindow.length > fpsWindowSize) {
+			const bootedFpsNum = fpsWindow.splice(0,1)[0];
+			fpsSum -= bootedFpsNum;
+		}
 
-	const debugFrameTime = false;
-	if(debugFrameTime && tickNum % 60 === 0) {
-		console.log(Math.round(dtMillis*100)/100)
+		fpsAvg = fpsSum / fpsWindow.length;
+		if(state.showFpsCounter) {
+			canvas.ctx.strokeStyle = "teal";
+			canvas.ctx.fontStyle = "bold 48px serif";
+			canvas.ctx.fillText(fpsAvg, 10, 10);
+		}
+	}
+	
+
+	if(fpsAvg !== undefined) {
+		// Here we can add / remove points from the simulation accoring to device performance.
 	}
 
 
@@ -455,7 +473,8 @@ const state = {
 	velX: (Math.random() - 0.5) * 5,
 	velY: -10,
 	velFriction: 0.99,
-	forcesEnabled: true
+	forcesEnabled: true,
+	showFpsCounter: true
 }
 
 function startAnim() {
