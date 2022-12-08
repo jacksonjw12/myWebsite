@@ -410,6 +410,7 @@ function update(dtMillis, isAntiGrav) {
 let fpsWindowSize = 10;
 let fpsSum = 0;
 let fpsWindow = [];
+let tickNum = 0;
 function tick(timeMillis) {
 	
 	state.timeMillis = timeMillis;
