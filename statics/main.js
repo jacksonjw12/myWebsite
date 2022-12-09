@@ -1,6 +1,6 @@
 const nonMobileWidthMin = 1000;
 const phonePercentageScaling = window.innerwidth < nonMobileWidthMin ? window.innerwidth / nonMobileWidthMin : 1.0;
-
+console.log({phonePercentageScaling, nonMobileWidthMin})
 const commonSettings = {
 	numPoints: Math.round(150 * phonePercentageScaling),//window.innerwidth < 500 ? 70 : 150,
 	rad: 2 * Math.PI,
@@ -630,14 +630,14 @@ window.onload = function(){
 	}
 
 	const onTouch = (touchEvent) => {
-		var touch = touchEvent.touches[0] || touchEvent.changedTouches[0];
-		mousePos.x = touch.pageX;
-		mousePos.y = touch.pageY;
+		var touch = touchEvent.touches[0];// || touchEvent.changedTouches[0];
+		mousePos.x = touch.clientX;
+		mousePos.y = touch.clientY;
 	}
 
 	document.addEventListener("ontouchmove", onTouch);
 	document.addEventListener("touchstart", onTouch);
-	document.addEventListener("touchend", onTouch);
+	// document.addEventListener("touchend", onTouch);
 
 	document.getElementById('changeMode').addEventListener('click', () => {
 
