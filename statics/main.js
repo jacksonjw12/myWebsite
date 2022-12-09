@@ -11,6 +11,7 @@ const commonSettings = {
 	wallBounces: false,
 	distanceScalingFactor: 1.0 * 5 / phonePercentageScaling,
 	velMax: 30 * phonePercentageScaling,
+	groundFriction: phonePercentageScaling < 1.0 ? 0.95 : 0.99,
 
 
 }
@@ -27,7 +28,6 @@ const gameSettings = [
 		springForce: 15,
 		springLength: 200,
 		wallFriction: 0.6,
-		groundFriction: 0.99,
 		startVelocity: 0,
 		wallStoppingVel: 1,
 		useSpringForces: true,
@@ -42,7 +42,6 @@ const gameSettings = [
 		timeScaleFactor: 1/10 * 1.0,
 		gravityForce: 30,
 		wallFriction: 0.6,
-		groundFriction: 0.99,
 		startVelocity: 0,
 		wallStoppingVel: 1,
 		useSpringForces: true,
@@ -57,7 +56,6 @@ const gameSettings = [
 		timeScaleFactor: 1/10 * 1.0,
 		gravityForce: 50,
 		wallFriction: 0.6,
-		groundFriction: 0.99,
 		startVelocity: 0,
 		wallStoppingVel: 1,
 		useSpringForces: false,
@@ -72,7 +70,6 @@ const gameSettings = [
 		timeScaleFactor: 1/10 * 1.0,
 		gravityForce: 50,
 		wallFriction: 0.6,
-		groundFriction: 1.0,
 		startVelocity: 5,
 		wallStoppingVel: 1,
 		useSpringForces: false,
