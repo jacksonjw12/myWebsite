@@ -635,7 +635,7 @@ window.onload = function(){
 		mousePos.y = touch.clientY;
 	}
 
-	document.addEventListener("ontouchmove", onTouch);
+	document.addEventListener("touchmove", onTouch);
 	document.addEventListener("touchstart", onTouch);
 	// document.addEventListener("touchend", onTouch);
 
