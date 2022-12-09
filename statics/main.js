@@ -1,6 +1,6 @@
 const nonMobileWidthMin = 1000;
-const phonePercentageScaling = window.innerwidth < nonMobileWidthMin ? window.innerwidth / nonMobileWidthMin : 1.0;
-console.log({phonePercentageScaling, nonMobileWidthMin, width: window.innerwidth})
+const phonePercentageScaling = window.innerWidth < nonMobileWidthMin ? window.innerWidth / nonMobileWidthMin : 1.0;
+console.log({phonePercentageScaling, nonMobileWidthMin, width: window.innerWidth})
 const commonSettings = {
 	numPoints: Math.round(150 * phonePercentageScaling),//window.innerwidth < 500 ? 70 : 150,
 	rad: 2 * Math.PI,
