@@ -1,12 +1,16 @@
+const nonMobileWidthMin = 1000;
+const phonePercentageScaling = window.innerwidth < nonMobileWidthMin ? window.innerwidth / nonMobileWidthMin : 1.0;
 
 const commonSettings = {
-	numPoints: window.innerwidth < 500 ? 70 : 150,
+	numPoints: Math.round(150 * phonePercentageScaling),//window.innerwidth < 500 ? 70 : 150,
 	rad: 2 * Math.PI,
 	fade: 1.0,
 	springForce: 10,
 	springLength: 100,
 	cursorMass: 350000,
-	wallBounces: false
+	wallBounces: false,
+	distanceScalingFactor: 1.0 * 5 / phonePercentageScaling,
+
 
 }
 
@@ -15,7 +19,6 @@ const gameSettings = [
 	{
 		name: "Springs and Point Gravity",
 		quantumGravityDistance: 10,
-		distanceScalingFactor: 1.0 * 5,
 		offscreenBufferSize: 20,
 		timeScaleFactor: 1/10 * 1.0,
 		gravityForce: 50,
@@ -35,7 +38,6 @@ const gameSettings = [
 	{
 		name: "Springs",
 		quantumGravityDistance: 10,
-		distanceScalingFactor: 1.0 * 5,
 		offscreenBufferSize: 20,
 		timeScaleFactor: 1/10 * 1.0,
 		gravityForce: 30,
@@ -52,7 +54,6 @@ const gameSettings = [
 	{
 		name: "Point Gravity",
 		quantumGravityDistance: 10,
-		distanceScalingFactor: 1.0 * 5,
 		offscreenBufferSize: 20,
 		timeScaleFactor: 1/10 * 1.0,
 		gravityForce: 50,
@@ -69,7 +70,6 @@ const gameSettings = [
 	{
 		name: "Fast!",
 		quantumGravityDistance: 10,
-		distanceScalingFactor: 1.0 * 5,
 		offscreenBufferSize: 20,
 		timeScaleFactor: 1/10 * 1.0,
 		gravityForce: 50,
@@ -160,7 +160,7 @@ function render(dt) {
 		}
 	}
 
-	canvas.ctx.fillStyle = "rgba(0,0,0,0.8)"
+	canvas.ctx.fillStyle = "rgba(0,0,0,0.8)";
 	if(usePoints) {
 		for(let p = 0; p < state.points.length; p++) {
         		const point = state.points[p];
@@ -168,6 +168,14 @@ function render(dt) {
                 	canvas.ctx.arc(point.x, point.y, 10, 0, settings.rad);
                 	canvas.ctx.fill();
 	        }
+
+	}
+
+	if(state.showDebugCursor) {
+		canvas.ctx.fillStyle = "rgba(255,0,0,0.8)";
+		canvas.ctx.beginPath();
+		canvas.ctx.arc(mousePos.x, mousePos.y, 10, 0, settings.rad);
+		canvas.ctx.fill();
 
 	}
 
@@ -480,7 +488,8 @@ const state = {
 	velY: -10,
 	velFriction: 0.99,
 	forcesEnabled: true,
-	showFpsCounter: false
+	showFpsCounter: true,
+	showDebugCursor: true
 }
 
 function startAnim() {
