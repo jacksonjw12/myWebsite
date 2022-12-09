@@ -480,7 +480,7 @@ const state = {
 	velY: -10,
 	velFriction: 0.99,
 	forcesEnabled: true,
-	showFpsCounter: true
+	showFpsCounter: false
 }
 
 function startAnim() {
@@ -620,7 +620,15 @@ window.onload = function(){
 		inTouch: false,
 	}
 
+	const onTouch = (touchEvent) => {
+		var touch = e.originalEvent.touches[0] || e.originalEvent.changedTouches[0];
+		mousePos.x = touch.pageX;
+		mousePos.y = touch.pageY;
+	}
 
+	document.addEventListener("ontouchmove", onTouch);
+	document.addEventListener("touchstart", onTouch);
+	document.addEventListener("touchend", onTouch);
 
 	document.getElementById('changeMode').addEventListener('click', () => {
 
