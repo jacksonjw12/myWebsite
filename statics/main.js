@@ -621,7 +621,7 @@ window.onload = function(){
 	}
 
 	const onTouch = (touchEvent) => {
-		var touch = e.originalEvent.touches[0] || e.originalEvent.changedTouches[0];
+		var touch = touchEvent.touches[0] || touchEvent.changedTouches[0];
 		mousePos.x = touch.pageX;
 		mousePos.y = touch.pageY;
 	}
