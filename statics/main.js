@@ -1,6 +1,6 @@
 const nonMobileWidthMin = 1000;
 const phonePercentageScaling = window.innerwidth < nonMobileWidthMin ? window.innerwidth / nonMobileWidthMin : 1.0;
-console.log({phonePercentageScaling, nonMobileWidthMin})
+console.log({phonePercentageScaling, nonMobileWidthMin, width: window.innerwidth})
 const commonSettings = {
 	numPoints: Math.round(150 * phonePercentageScaling),//window.innerwidth < 500 ? 70 : 150,
 	rad: 2 * Math.PI,
@@ -10,6 +10,7 @@ const commonSettings = {
 	cursorMass: 350000,
 	wallBounces: false,
 	distanceScalingFactor: 1.0 * 5 / phonePercentageScaling,
+	velMax: 30 * phonePercentageScaling,
 
 
 }
@@ -29,7 +30,6 @@ const gameSettings = [
 		groundFriction: 0.99,
 		startVelocity: 0,
 		wallStoppingVel: 1,
-		velMax: 50,
 		useSpringForces: true,
 		useInterpointGravity: true,
 		fade: 0.2
@@ -45,7 +45,6 @@ const gameSettings = [
 		groundFriction: 0.99,
 		startVelocity: 0,
 		wallStoppingVel: 1,
-		velMax: 30,
 		useSpringForces: true,
 		useInterpointGravity: false,
 		fade: 0.4
@@ -61,7 +60,6 @@ const gameSettings = [
 		groundFriction: 0.99,
 		startVelocity: 0,
 		wallStoppingVel: 1,
-		velMax: 50,
 		useSpringForces: false,
 		useInterpointGravity: true,
 		fade:0.15,
@@ -77,7 +75,6 @@ const gameSettings = [
 		groundFriction: 1.0,
 		startVelocity: 5,
 		wallStoppingVel: 1,
-		velMax: 50,
 		useSpringForces: false,
 		useInterpointGravity: true,
 		fade:0.2
