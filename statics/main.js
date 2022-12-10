@@ -634,7 +634,7 @@ const state = {
 	showDebugCursor: debug,
 	useWrappedPhysics: true,
 	usePoints: debug ? true : Math.random() > 0.7, // more likely than not to not get points
-	useForceAmplituteColor: true,
+	useForceAmplituteColor: false,
 	forceAmplitudeMax: undefined,
 	paused:true,
 	pauseBehavior: {
