@@ -347,9 +347,10 @@ function maybeRecomputeWrappedPointPositions(constantPoint, variablePoint, isAnt
 
 function update(dtMillis, isAntiGrav) {
 	const scaledMillis = dtMillis * settings.timeScaleFactor;
+	const mouseOOB = mousePos.x === undefined || mousePos.y === undefined;
 	const clampedMousePos = {
-		x: clamp(mousePos.x, 0, canvas.width),
-		y: clamp(mousePos.y, 0, canvas.height)
+		x: mouseOOB ? undefined : clamp(mousePos.x, 0, canvas.width),
+		y: mouseOOB ? undefined : clamp(mousePos.y, 0, canvas.height)
 	}
 
 
@@ -365,7 +366,7 @@ function update(dtMillis, isAntiGrav) {
 		point.accelX = 0;
 		point.accelY = 0;
 
-		if(!(state.paused && state.pauseBehavior.removeCursorPhysics)) {
+		if(!mouseOOB && !(state.paused && state.pauseBehavior.removeCursorPhysics)) {
 			pointRecomputedStatus = maybeRecomputeWrappedPointPositions(clampedMousePos, point, isAntiGrav)
 			let gravPoint = pointRecomputedStatus.recomputedPoint ? pointRecomputedStatus.newPoint : point;
 			// debugDrawPoint = pointRecomputedStatus.recomputedPoint ? pointRecomputedStatus.newPoint : undefined;
@@ -645,7 +646,7 @@ function startAnim() {
 	        if (callNow) func.apply(context, args);
 	    };
 	};
-	window.addEventListener('click', debounce(click, 40, false), false);
+	window.addEventListener('click', debounce(click, 30, false), false);
 
 
 	state.paused = false;
@@ -718,7 +719,6 @@ window.onload = function(){
 		mousePos.x = event.clientX;
 		mousePos.y = event.clientY;
 
-
 		if(event.clientX < 0  || event.clientX > canvas.width || event.clientY < 0 || event.clientY > canvas.height) {
 			mousePos.x = canvas.width / 2;
 			mousePos.y = canvas.height / 2;
@@ -751,14 +751,22 @@ window.onload = function(){
 	}
 
 	const onTouch = (touchEvent) => {
+		if(touchEvent.touches.length == 0) {
+			console.log("no touch")
+			mousePos.x = undefined;
+			mousePos.y = undefined;
+			return;
+		}
 		var touch = touchEvent.touches[0];// || touchEvent.changedTouches[0];
 		mousePos.x = touch.clientX;
 		mousePos.y = touch.clientY;
+		console.log("touch")
+
 	}
 
 	document.addEventListener("touchmove", onTouch);
 	document.addEventListener("touchstart", onTouch);
-	// document.addEventListener("touchend", onTouch);
+	document.addEventListener("touchend", onTouch);
 
 	document.getElementById('changeMode').addEventListener('click', () => {
 
