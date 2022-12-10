@@ -2,6 +2,7 @@ const nonMobileWidthMin = 1000;
 const phonePercentageScaling = Math.max(window.innerWidth, window.innerHeight) < nonMobileWidthMin ? Math.max(window.innerWidth, window.innerHeight) / nonMobileWidthMin : 1.0;
 const linesCloseness = 200;
 
+
 const commonSettings = {
 	numPoints: Math.round(150 * phonePercentageScaling),//window.innerwidth < 500 ? 70 : 150,
 	rad: 2 * Math.PI,
@@ -135,8 +136,8 @@ function render(dt) {
 
 					const percentageThick = 1.0 - (dist / linesCloseness);
 
-					if(state.useForceAmplituteColor && state.forceAmplitudeMax !== undefined && state.forceAmplitudeMax !== 0) {
-						canvas.ctx.strokeStyle = `rgba(${ (point2.accelX + point2.accelY )/state.forceAmplitudeMax * 255},0,0,${percentageThick})`;
+					if(state.useForceAmplituteColor && forceAmplitudeMax !== undefined && forceAmplitudeMax !== 0) {
+						canvas.ctx.strokeStyle = `rgba(${ (Math.abs(point2.accelX) + Math.abs(point2.accelY) )/forceAmplitudeMax * 255},0,0,${percentageThick})`;
 
 					}
 					else{
@@ -383,6 +384,7 @@ function update(dtMillis, isAntiGrav) {
 				point.accelX += grav.x * pointRecomputedStatus.flipModifierX;
 				point.accelY += grav.y * pointRecomputedStatus.flipModifierY;
 			}
+			// forceAmplitudeMax = Math.max(Math.abs(point.accelX) + Math.abs(point.accelY))
 
 		}
 
@@ -443,7 +445,7 @@ function update(dtMillis, isAntiGrav) {
 			point.velY = clamp(point.velY, -settings.velMax, settings.velMax);
 		}
 		
-
+		forceAmplitudeMax = Math.max(Math.abs(point.accelX) + Math.abs(point.accelY))
 
 		point.x += point.velX * scaledMillis;
 		point.y += point.velY * scaledMillis;
@@ -512,6 +514,33 @@ function update(dtMillis, isAntiGrav) {
 	}
 
 }
+
+const targetFpsRange = [60, 120] // within this range dont touch the amount of points on the screen.
+let fps120HzCapable = false;
+let diffPointsForFps = [];
+const fpsPointStep = 5;
+function maybeImproveFPS(fpsAvg) {
+	
+
+	if(fpsAvg < targetFpsRange[fps120HzCapable ? 1 : 0]) {
+		// remove points if fps is struggling.
+		console.log("FPS: Need to remove some points");
+		if(state.points.length >= fpsPointStep) {
+			diffPointsForFps = [...diffPointsForFps, ...state.points.splice(0,fpsPointStep)];
+		}
+		else {
+			state.points.splice(0,1);
+		}
+
+	}
+	else if(fpsAvg > targetFpsRange[fps120HzCapable ? 1 : 0] && diffPointsForFps.length > 0) {
+		// Add points back in if fps allows
+		console.log("FPS: Able to add points back in.");
+		state.points = [...state.points, ...diffPointsForFps.splice(0, Math.min(diffPointsForFps.length, fpsPointStep))]
+	}
+
+}
+
 let fpsWindowSize = 10;
 let fpsSum = 0;
 let fpsWindow = [];
@@ -549,7 +578,10 @@ function tick(timeMillis) {
 		}
 
 		fpsAvg = Math.round(fpsSum / fpsWindow.length * 100) / 100;
-		if(tickNum % 10 === 0) {
+		if(fpsAvg >= targetFpsRange[1]) {
+			fps120HzCapable = true;
+		}
+		if(tickNum % 100 === 0) {
 			shownFps = fpsAvg;
 		}
 
@@ -560,9 +592,9 @@ function tick(timeMillis) {
 		}
 	}
 	
-
-	if(fpsAvg !== undefined) {
+	if(state.performFPSAdjustments && fpsAvg !== undefined && tickNum % 10 === 0) {
 		// Here we can add / remove points from the simulation accoring to device performance.
+		maybeImproveFPS(fpsAvg)
 	}
 
 
@@ -609,7 +641,8 @@ const state = {
 		cancelAnimation: false,
 		removeCursorPhysics: true
 	},
-	debugDelayFrameMillis: 0
+	debugDelayFrameMillis: 0,
+	performFPSAdjustments: !debug
 
 }
 
