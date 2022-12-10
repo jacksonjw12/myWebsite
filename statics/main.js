@@ -102,7 +102,7 @@ function render(dt) {
 		canvas.ctx.fillStyle = `rgba(255,255,255,1.0)`;
 	}
 	else {
-		canvas.ctx.fillStyle = `rgba(255,255,255,${settings.fade})`;
+		canvas.ctx.fillStyle = `rgba(255,255,255,${fps120HzCapable ? settings.fade : (settings.fade + 1.0) / 2})`;
 	} 
 	
 	canvas.ctx.fillRect(0,0,canvas.width, canvas.height);
@@ -519,6 +519,8 @@ const targetFpsRange = [60, 120] // within this range dont touch the amount of p
 let fps120HzCapable = false;
 let diffPointsForFps = [];
 const fpsPointStep = 5;
+let goodFPSStreak = 0;
+const goodFPSStreakAmount = 100;
 function maybeImproveFPS(fpsAvg) {
 	
 
@@ -531,12 +533,18 @@ function maybeImproveFPS(fpsAvg) {
 		else {
 			state.points.splice(0,1);
 		}
+		goodFPSStreak = 0;
 
 	}
-	else if(fpsAvg > targetFpsRange[fps120HzCapable ? 1 : 0] && diffPointsForFps.length > 0) {
+	else if(fpsAvg >= targetFpsRange[fps120HzCapable ? 1 : 0] && diffPointsForFps.length > 0) {
 		// Add points back in if fps allows
-		console.log("FPS: Able to add points back in.");
-		state.points = [...state.points, ...diffPointsForFps.splice(0, Math.min(diffPointsForFps.length, fpsPointStep))]
+		goodFPSStreak++;
+		if(goodFPSStreak > goodFPSStreakAmount) {
+			console.log("FPS: Able to add points back in.");
+			state.points = [...state.points, ...diffPointsForFps.splice(0, 1)]
+			goodFPSStreak = 0;
+		}
+		
 	}
 
 }
@@ -580,6 +588,8 @@ function tick(timeMillis) {
 		fpsAvg = Math.round(fpsSum / fpsWindow.length * 100) / 100;
 		if(fpsAvg >= targetFpsRange[1]) {
 			fps120HzCapable = true;
+
+
 		}
 		if(tickNum % 100 === 0) {
 			shownFps = fpsAvg;
