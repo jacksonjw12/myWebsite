@@ -42,8 +42,10 @@
 
 	.gearIcon {
 		pointer-events: auto; 
-		font-size: 3em;
+/*		font-size: 3em;*/
+		font-size: min(10vw, 10vh);
 		float:right;
+		cursor:pointer;
 	}
 
 	#message {
@@ -128,9 +130,16 @@
 /*		min-width: auto*/
 /*		max-width:50%;*/
 		border:2px dashed #aaa;
-		display:none;
 	}
 
+	.closeButton {
+		pointer-events: auto; 
+		font-size: min(6vw, 6vh);
+		float:right;
+		cursor:pointer;
+		
+
+	}
 
 
 	
@@ -138,7 +147,7 @@
 <body>
 
 <div id="mainPage" class="mainPageStart">
-
+	<div class="closeButton" id="closeButton">✖️</div>
 	<div class="title courier">
 		<h1 class="header courier"> Welcome </h1>
 		<h3 class="lower courier">To Jackson Wheeler's Website</h3>

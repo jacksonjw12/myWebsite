@@ -1,6 +1,7 @@
 const nonMobileWidthMin = 1000;
-const phonePercentageScaling = window.innerWidth < nonMobileWidthMin ? window.innerWidth / nonMobileWidthMin : 1.0;
-console.log({phonePercentageScaling, nonMobileWidthMin, width: window.innerWidth})
+const phonePercentageScaling = Math.max(window.innerWidth, window.innerHeight) < nonMobileWidthMin ? Math.max(window.innerWidth, window.innerHeight) / nonMobileWidthMin : 1.0;
+const linesCloseness = 200;
+
 const commonSettings = {
 	numPoints: Math.round(150 * phonePercentageScaling),//window.innerwidth < 500 ? 70 : 150,
 	rad: 2 * Math.PI,
@@ -8,10 +9,13 @@ const commonSettings = {
 	springForce: 10,
 	springLength: 100,
 	cursorMass: 350000,
+	pointMass: 10,
 	wallBounces: false,
-	distanceScalingFactor: 1.0 * 5 / phonePercentageScaling,
-	velMax: 30 * phonePercentageScaling,
-	groundFriction: phonePercentageScaling < 1.0 ? 0.95 : 0.99,
+	distanceScalingFactor: 1.0 * 5,//1.0 * 5 / phonePercentageScaling,
+	velMax: 20 ,
+	groundFriction: 0.99,
+	offscreenBufferSize: linesCloseness / 4,
+
 
 
 }
@@ -21,12 +25,11 @@ const gameSettings = [
 	{
 		name: "Springs and Point Gravity",
 		quantumGravityDistance: 10,
-		offscreenBufferSize: 20,
 		timeScaleFactor: 1/10 * 1.0,
 		gravityForce: 50,
 		cursorMass: 3000,
 		springForce: 15,
-		springLength: 200,
+		springLength: 10,
 		wallFriction: 0.6,
 		startVelocity: 0,
 		wallStoppingVel: 1,
@@ -38,21 +41,23 @@ const gameSettings = [
 	{
 		name: "Springs",
 		quantumGravityDistance: 10,
-		offscreenBufferSize: 20,
 		timeScaleFactor: 1/10 * 1.0,
 		gravityForce: 30,
-		wallFriction: 0.6,
+		wallFriction: 0.2,
 		startVelocity: 0,
 		wallStoppingVel: 1,
 		useSpringForces: true,
 		useInterpointGravity: false,
-		fade: 0.4
+		fade: 0.4,
+		springForce: 22,
+		springLength: 80,
+		velMax: 10,
+		groundFriction: 0.97,
 		
 	},
 	{
 		name: "Point Gravity",
 		quantumGravityDistance: 10,
-		offscreenBufferSize: 20,
 		timeScaleFactor: 1/10 * 1.0,
 		gravityForce: 50,
 		wallFriction: 0.6,
@@ -63,30 +68,14 @@ const gameSettings = [
 		fade:0.15,
 		
 	},
-	{
-		name: "Fast!",
-		quantumGravityDistance: 10,
-		offscreenBufferSize: 20,
-		timeScaleFactor: 1/10 * 1.0,
-		gravityForce: 50,
-		wallFriction: 0.6,
-		startVelocity: 5,
-		wallStoppingVel: 1,
-		useSpringForces: false,
-		useInterpointGravity: true,
-		fade:0.2
-		
-	}
 
 ]
 
-const usePoints = Math.random() > 0.5;
 
-let gameIndex = Math.round(Math.random() * 1000) % (gameSettings.length - 1); // dont give fast as the first option
+let gameIndex = Math.round(Math.random() * 1000) % (gameSettings.length); 
 console.log(gameIndex)
 let settings = {...commonSettings, ...gameSettings[gameIndex]};
 console.log("Mode", settings.name);
-
 
 function clamp(val, start, end) {
 	if(val < start){
@@ -104,10 +93,17 @@ function pointDist(point1, point2) {
 	return Math.sqrt(xd * xd + yd * yd);
 }
 
+let debugDrawPoint = undefined;
+
 function render(dt) {
 
+	if(state.debugDelayFrameMillis > 0) {
+		canvas.ctx.fillStyle = `rgba(255,255,255,1.0)`;
+	}
+	else {
+		canvas.ctx.fillStyle = `rgba(255,255,255,${settings.fade})`;
+	} 
 	
-	canvas.ctx.fillStyle = `rgba(255,255,255,${settings.fade})`;
 	canvas.ctx.fillRect(0,0,canvas.width, canvas.height);
 	
 	
@@ -116,7 +112,8 @@ function render(dt) {
 	canvas.ctx.fillStyle = "rgba(0,0,0,0.5)"
 	
 	const drawLines = true;
-	const linesCloseness = 200;
+
+
 
 	canvas.ctx.strokeStyle = "rgba(0,0,0,0.8)";
 	if(drawLines) {
@@ -138,7 +135,14 @@ function render(dt) {
 
 					const percentageThick = 1.0 - (dist / linesCloseness);
 
-					canvas.ctx.strokeStyle = `rgba(0,0,0,${percentageThick})`;
+					if(state.useForceAmplituteColor && state.forceAmplitudeMax !== undefined && state.forceAmplitudeMax !== 0) {
+						canvas.ctx.strokeStyle = `rgba(${ (point2.accelX + point2.accelY )/state.forceAmplitudeMax * 255},0,0,${percentageThick})`;
+
+					}
+					else{
+						canvas.ctx.strokeStyle = `rgba(0,0,0,${percentageThick})`;
+
+					}
 
 					canvas.ctx.beginPath();
 					canvas.ctx.moveTo(point1.x, point1.y);
@@ -155,7 +159,7 @@ function render(dt) {
 	}
 
 	canvas.ctx.fillStyle = "rgba(0,0,0,0.8)";
-	if(usePoints) {
+	if(state.usePoints) {
 		for(let p = 0; p < state.points.length; p++) {
         		const point = state.points[p];
                		canvas.ctx.beginPath();
@@ -172,6 +176,13 @@ function render(dt) {
 		canvas.ctx.fill();
 
 	}
+	if(debugDrawPoint !== undefined) {
+		canvas.ctx.fillStyle = "rgba(0,0,255,0.8)";
+		canvas.ctx.beginPath();
+		canvas.ctx.arc(debugDrawPoint.x, debugDrawPoint.y, 10, 0, settings.rad);
+		canvas.ctx.fill();
+		debugDrawPoint = undefined;
+	}
 
 }
 
@@ -181,7 +192,6 @@ function getGravForces(point1, point2, massProduct, quantumDist=10000, disableQu
 
 	let cursorDistX = (point1.x - point2.x) * distanceScalingFactor;
 	let cursorDistY = (point1.y - point2.y) * distanceScalingFactor;
-
 
 	if(!isAntiGrav && (cursorDistX * cursorDistX + cursorDistY * cursorDistY < quantumDist * quantumDist) && disableQuantumGrav) {
 		return {
@@ -266,6 +276,75 @@ function getSpringForces(point1, point2, springLength, springFactor, distanceSca
 
 }
 
+function maybeRecomputeWrappedPointPositions(constantPoint, variablePoint, isAntiGrav=false) {
+	let deltaX = Math.abs(constantPoint.x - variablePoint.x);
+	let deltaY = Math.abs(constantPoint.y - variablePoint.y);
+	let recomputedPoint = false;
+	let flipX = false;
+	let flipY = false;
+	let newPoint = undefined;
+	if(!state.useWrappedPhysics) {
+		return {
+			flipModifierX: 1,
+			flipModifierY: 1,
+			recomputedPoint
+		};
+	}
+	const halfWidth = canvas.width / 2 + settings.offscreenBufferSize;
+	const halfHeight = canvas.height / 2 + settings.offscreenBufferSize; 
+
+	if(state.useWrappedPhysics && deltaX > halfWidth) {
+		deltaX = halfWidth * 2 - deltaX;
+		recomputedPoint = true;
+		flipX = true;
+	}
+	if(state.useWrappedPhysics && deltaY > halfHeight) {
+		deltaY = halfHeight * 2 - deltaY;
+		recomputedPoint = true;
+		flipY = true;
+	}
+	if(recomputedPoint) {
+		const newX = flipX ? constantPoint.x + deltaX : variablePoint.x;
+		const newY = flipY ? constantPoint.y + deltaY : variablePoint.y;
+
+		// Need to do this all in one step in case an adjustment on one axis messes up the other.
+		newPoint = {
+			...variablePoint,
+			x: newX,
+			y: newY
+		}
+
+	}
+
+	/*
+		isAntiGrav | flipForce | Result
+				0  |         0  |  1
+				0  |		 1  | -1
+				1  |         0  | -1
+				1  |		 1  |  1
+
+				This is an xor ( ^ ) output is 1 | 0
+				1 * -2 + 1 = -2 + 1 = -1
+				0 * -2 + 1 = 0 + 1 = 1
+
+
+
+	*/
+
+
+	const flipModifierX = flipX && variablePoint.x > constantPoint.x ? -1 : 1;// 1//-2 * (isAntiGrav ^ flipForceX) + 1;
+	const flipModifierY = flipY && variablePoint.y > constantPoint.y ? -1 : 1;//-2 * (isAntiGrav ^ flipForceY) + 1;
+
+
+	return {
+			newPoint,
+			flipModifierX,
+			flipModifierY,
+			recomputedPoint
+		};
+
+}
+
 function update(dtMillis, isAntiGrav) {
 	const scaledMillis = dtMillis * settings.timeScaleFactor;
 	const clampedMousePos = {
@@ -273,79 +352,77 @@ function update(dtMillis, isAntiGrav) {
 		y: clamp(mousePos.y, 0, canvas.height)
 	}
 
-	const swarming = state.noise.getVal(state.lastMillis) + 40;///*Math.random() * 100 +*/ 75;
-	
-	const halfWidth = canvas.width / 2 + settings.offscreenBufferSize;
-	const halfHeight = canvas.height / 2 + settings.offscreenBufferSize; 
 
+
+	const swarming = debug ? 5 : state.noise.getVal(state.lastMillis) + 40;///*Math.random() * 100 +*/ 75;
+	
+	if(state.useForceAmplituteColor) {
+		state.forceAmplitudeMax = 0;
+	}
+	let pointRecomputedStatus;
 	for(var p = 0; p < state.points.length; p++){
-		const point = state.points[p];
+		let point = state.points[p];
 		point.accelX = 0;
 		point.accelY = 0;
 
-		
-		const grav = getGravForces(point, clampedMousePos, settings.cursorMass, isAntiGrav ? 0 : settings.quantumGravityDistance, false, isAntiGrav, settings.distanceScalingFactor / 15);
+		if(!(state.paused && state.pauseBehavior.removeCursorPhysics)) {
+			pointRecomputedStatus = maybeRecomputeWrappedPointPositions(clampedMousePos, point, isAntiGrav)
+			let gravPoint = pointRecomputedStatus.recomputedPoint ? pointRecomputedStatus.newPoint : point;
+			// debugDrawPoint = pointRecomputedStatus.recomputedPoint ? pointRecomputedStatus.newPoint : undefined;
+
+			
+			const grav = getGravForces(gravPoint, clampedMousePos, settings.cursorMass, isAntiGrav ? 0 : settings.quantumGravityDistance, false, isAntiGrav, settings.distanceScalingFactor / 15);
 
 
-		if(isAntiGrav) {
-			point.accelX -= grav.x;
-			point.accelY -= grav.y;
+			if(isAntiGrav) {
+				point.accelX -= grav.x * pointRecomputedStatus.flipModifierX;
+				point.accelY -= grav.y * pointRecomputedStatus.flipModifierY;
+			}
+			else {
+				point.accelX += grav.x * pointRecomputedStatus.flipModifierX;
+				point.accelY += grav.y * pointRecomputedStatus.flipModifierY;
+			}
+
 		}
-		else {
-			point.accelX += grav.x;
-			point.accelY += grav.y;
-		}
+
 		
 
-
-
-
+		
 		for(let j = 0; j < state.points.length; j++) {
-			if(j === p) {
+			if(j === p ) {
 				continue;
 			}
 			let otherPoint = state.points[j];
-			let deltaX = Math.abs(point.x - otherPoint.x);
-			let deltaY = Math.abs(point.y - otherPoint.y);
-			let recomputePoint = false;
+			pointRecomputedStatus = maybeRecomputeWrappedPointPositions(point, otherPoint, isAntiGrav);
+			// otherPoint = pointRecomputedStatus.recomputedPoint ? pointRecomputedStatus.newPoint : otherPoint;
 
-
-			if(state.useWrappedPhysics && deltaX > halfWidth) {
-				deltaX = halfWidth * 2 - deltaX;
-				recomputePoint = true;
-			}
-			if(state.useWrappedPhysics && deltaY > halfHeight) {
-				deltaY = halfHeight * 2 - deltaY;
-				recomputePoint = true;
-			}
-			if(recomputePoint) {
-				// Need to do this all in one step in case an adjustment on one axis messes up the other.
-				otherPoint = {
-					x: point.x + deltaX,
-					y: point.y + deltaY
-				}
-			}
-
-			const pointGrav = getGravForces(point, otherPoint, 8.0, isAntiGrav ? 0 : swarming, !isAntiGrav, isAntiGrav, settings.distanceScalingFactor);
-
-			const springForces = getSpringForces(point, otherPoint, settings.springLength, settings.springForce, settings.distanceScalingFactor);
-
+			let pointUsedForForces = pointRecomputedStatus.recomputedPoint ? pointRecomputedStatus.newPoint : otherPoint;
 			
+			
+
+
 			if(settings.useInterpointGravity) {
+				const pointGrav = getGravForces(point, pointUsedForForces, settings.pointMass, isAntiGrav ? 0 : swarming, !isAntiGrav, isAntiGrav, settings.distanceScalingFactor);
+
+
 				if(isAntiGrav) {
-					point.accelX -= pointGrav.x;
-					point.accelY -= pointGrav.y;
+					point.accelX -= pointGrav.x * pointRecomputedStatus.flipModifierX;
+					point.accelY -= pointGrav.y * pointRecomputedStatus.flipModifierY;
 				}
 				else {
-					point.accelX += pointGrav.x;
-					point.accelY += pointGrav.y;
+					point.accelX += pointGrav.x * pointRecomputedStatus.flipModifierX;
+					point.accelY += pointGrav.y * pointRecomputedStatus.flipModifierY;
 				}
 			}
 
 			if(settings.useSpringForces) {
-				point.accelX += springForces.x;
-				point.accelY += springForces.y;
+				const springForces = getSpringForces(point, pointUsedForForces, settings.springLength, settings.springForce, settings.distanceScalingFactor);
+
+				point.accelX += springForces.x * pointRecomputedStatus.flipModifierX;
+				point.accelY += springForces.y * pointRecomputedStatus.flipModifierY;
 			}
+
+			// state.points[j] = otherPoint; // sync back lol
 
 			
 		}
@@ -387,7 +464,7 @@ function update(dtMillis, isAntiGrav) {
 				point.velX *= -1;
 			}
 			else {
-				point.x = canvas.width + point.x + settings.offscreenBufferSize * 2;
+				point.x = canvas.width + settings.offscreenBufferSize;
 			}
 			point.velX *= settings.wallFriction;
 
@@ -399,7 +476,7 @@ function update(dtMillis, isAntiGrav) {
 				point.velY *= -1;
 			}
 			else {
-				point.y = canvas.height + point.y + settings.offscreenBufferSize * 2;
+				point.y = canvas.height + settings.offscreenBufferSize ;
 			}
 
 			point.velY *= settings.wallFriction;
@@ -412,7 +489,7 @@ function update(dtMillis, isAntiGrav) {
 				point.velX *= -1;
 			}
 			else {
-				point.x = point.x - canvas.width - settings.offscreenBufferSize * 2;
+				point.x = -settings.offscreenBufferSize;
 			}
 			point.velX *= settings.wallFriction;
 
@@ -425,7 +502,7 @@ function update(dtMillis, isAntiGrav) {
 				point.velY *= -1;
 			}
 			else {
-				point.y = point.y - canvas.height - settings.offscreenBufferSize * 2;
+				point.y = - settings.offscreenBufferSize;
 			}
 			point.velY *= settings.wallFriction;
 
@@ -439,13 +516,17 @@ let fpsSum = 0;
 let fpsWindow = [];
 let tickNum = 0;
 let shownFps = undefined;
+const maxMillisPerTick = 100;
 function tick(timeMillis) {
 	
 	state.timeMillis = timeMillis;
 	if(state.lastMillis === undefined) {
 		state.lastMillis = timeMillis;
 	}
-	const dtMillis = state.timeMillis - state.lastMillis;
+	if(state.debugDelayFrameMillis > 0){
+		state.lastMillis = timeMillis -10;
+	}
+	const dtMillis = clamp(state.timeMillis - state.lastMillis, 0, maxMillisPerTick);
 
 	isAntiGrav = state.antiGravMillis > 0;
 	state.antiGravMillis -= dtMillis;
@@ -488,28 +569,47 @@ function tick(timeMillis) {
 
 	tickNum++;
 
-	if(!state.paused){
-		window.requestAnimationFrame(tick);
+	if(!(state.paused && state.pauseBehavior.cancelAnimation)){
+		if(state.debugDelayFrameMillis > 0) {
+			window.setTimeout(()=>{
+				window.requestAnimationFrame(tick);
+			}, state.debugDelayFrameMillis);
+		}
+		else{
+			window.requestAnimationFrame(tick);
+
+		}
 	}
 	
 
 }
 
+
+const debug = false;
 const state = {
 	lastMillis: undefined,
 	points: [],
 	antiGravMillis: 0,
 	noise: window.Simple1DNoise(100, 0.002),
-	paused:true,
 	cursorPos: undefined,
 	loopId: undefined,
-	velX: (Math.random() - 0.5) * 5,
-	velY: -10,
+	velX: debug ? 0 : (Math.random() - 0.5) * 5,
+	velY: debug ? 0 : -10,
 	velFriction: 0.99,
 	forcesEnabled: true,
 	showFpsCounter: true,
-	showDebugCursor: true,
-	useWrappedPhysics: true
+	showDebugCursor: debug,
+	useWrappedPhysics: true,
+	usePoints: debug ? true : Math.random() > 0.7, // more likely than not to not get points
+	useForceAmplituteColor: true,
+	forceAmplitudeMax: undefined,
+	paused:true,
+	pauseBehavior: {
+		cancelAnimation: false,
+		removeCursorPhysics: true
+	},
+	debugDelayFrameMillis: 0
+
 }
 
 function startAnim() {
@@ -554,16 +654,19 @@ function startAnim() {
 
 function pause() {
 	state.paused = true;
-	if(state.loopId !== undefined) {
-		window.cancelAnimationFrame(state.loopId);
-		state.loopId = undefined;
-		state.lastMillis = undefined;
+	if(state.loopId !== undefined && state.pauseBehavior.cancelAnimation) {
+		// window.cancelAnimationFrame(state.loopId);
+		// state.loopId = undefined;
+		// state.lastMillis = undefined;
 	}
 
 }
 function resume() {
 	state.paused = false;
-	state.loopId = window.requestAnimationFrame(tick);
+	if(state.pauseBehavior.cancelAnimation) {
+		state.loopId = window.requestAnimationFrame(tick);
+
+	}
 }
 
 
@@ -629,9 +732,8 @@ window.onload = function(){
 	document.addEventListener("mouseleave", function(event){
 		// mousePos.x = canvas.width / 2;
 		// mousePos.y = canvas.height / 2;
-		state.forcesEnabled = false;
-		leaveTimer = window.setTimeout(()=>{pause()}, 2000);
-		console.log("paused");
+		// state.forcesEnabled = false;
+		leaveTimer = window.setTimeout(()=>{pause()}, 250);
 
 	});
 
@@ -642,7 +744,6 @@ window.onload = function(){
 		}
 		state.forcesEnabled = true;
 		resume();
-		console.log("resumed")
 	});
 
 	const touchState = {
@@ -666,6 +767,10 @@ window.onload = function(){
 
 		console.log("changeMode", settings.name);
 		createMessage(`Mode: <b>${settings.name}</b>`);
+	})
+
+	document.getElementById('closeButton').addEventListener('click', () => {
+		document.getElementById('mainPage').style.display = 'none';
 	})
 
 
