@@ -275,6 +275,9 @@ function update(dtMillis, isAntiGrav) {
 
 	const swarming = state.noise.getVal(state.lastMillis) + 40;///*Math.random() * 100 +*/ 75;
 	
+	const halfWidth = canvas.width / 2 + settings.offscreenBufferSize;
+	const halfHeight = canvas.height / 2 + settings.offscreenBufferSize; 
+
 	for(var p = 0; p < state.points.length; p++){
 		const point = state.points[p];
 		point.accelX = 0;
@@ -301,9 +304,31 @@ function update(dtMillis, isAntiGrav) {
 			if(j === p) {
 				continue;
 			}
-			const pointGrav = getGravForces(point, state.points[j], 8.0, isAntiGrav ? 0 : swarming, !isAntiGrav, isAntiGrav, settings.distanceScalingFactor);
+			let otherPoint = state.points[j];
+			let deltaX = Math.abs(point.x - otherPoint.x);
+			let deltaY = Math.abs(point.y - otherPoint.y);
+			let recomputePoint = false;
 
-			const springForces = getSpringForces(point, state.points[j], settings.springLength, settings.springForce, settings.distanceScalingFactor);
+
+			if(state.useWrappedPhysics && deltaX > halfWidth) {
+				deltaX = halfWidth * 2 - deltaX;
+				recomputePoint = true;
+			}
+			if(state.useWrappedPhysics && deltaY > halfHeight) {
+				deltaY = halfHeight * 2 - deltaY;
+				recomputePoint = true;
+			}
+			if(recomputePoint) {
+				// Need to do this all in one step in case an adjustment on one axis messes up the other.
+				otherPoint = {
+					x: point.x + deltaX,
+					y: point.y + deltaY
+				}
+			}
+
+			const pointGrav = getGravForces(point, otherPoint, 8.0, isAntiGrav ? 0 : swarming, !isAntiGrav, isAntiGrav, settings.distanceScalingFactor);
+
+			const springForces = getSpringForces(point, otherPoint, settings.springLength, settings.springForce, settings.distanceScalingFactor);
 
 			
 			if(settings.useInterpointGravity) {
@@ -483,7 +508,8 @@ const state = {
 	velFriction: 0.99,
 	forcesEnabled: true,
 	showFpsCounter: true,
-	showDebugCursor: true
+	showDebugCursor: true,
+	useWrappedPhysics: true
 }
 
 function startAnim() {
