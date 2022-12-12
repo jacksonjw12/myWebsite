@@ -521,10 +521,11 @@ let diffPointsForFps = [];
 const fpsPointStep = 5;
 let goodFPSStreak = 0;
 const goodFPSStreakAmount = 100;
+const minPoints = 20;
 function maybeImproveFPS(fpsAvg) {
 	
 
-	if(fpsAvg < targetFpsRange[fps120HzCapable ? 1 : 0]) {
+	if(fpsAvg < targetFpsRange[fps120HzCapable ? 1 : 0] && state.points.length > minPoints) {
 		// remove points if fps is struggling.
 		console.log("FPS: Need to remove some points");
 		if(state.points.length >= fpsPointStep) {
@@ -640,7 +641,7 @@ const state = {
 	velY: debug ? 0 : -10,
 	velFriction: 0.99,
 	forcesEnabled: true,
-	showFpsCounter: true,
+	showFpsCounter: debug,
 	showDebugCursor: debug,
 	useWrappedPhysics: true,
 	usePoints: debug ? true : Math.random() > 0.7, // more likely than not to not get points
@@ -821,7 +822,11 @@ window.onload = function(){
 	})
 
 	document.getElementById('closeButton').addEventListener('click', () => {
-		document.getElementById('mainPage').style.display = 'none';
+		const styles = document.getElementById('mainPage').style
+		styles.translate = "0 -100vh";
+		window.setTimeout(()=>{
+			styles.display = 'none';
+		}, 2000)
 	})
 
 

@@ -48,6 +48,18 @@
 		cursor:pointer;
 	}
 
+	@keyframes spin {
+		0%   {transform: rotateZ(0deg)}
+		100% {transform: rotateZ(360deg)}
+	}
+	.gearIcon:hover {
+		animation-name: spin;
+	 	animation-duration: 2s;
+	 	animation-iteration-count: infinite;
+	 	animation-timing-function: linear;
+	 	
+	}
+
 	#message {
 		pointer-events: none;
 		width:100%;
@@ -130,19 +142,38 @@
 /*		min-width: auto*/
 /*		max-width:50%;*/
 		border:2px dashed #aaa;
+		transition: translate 2s;
+/*		transition: display 2s;*/
 	}
 
+
+	/*@keyframes wiggle {
+		0%   {transform: rotateZ(-10deg)}
+		33%  {transform: rotateZ(10deg)}
+		66%  {transform: rotateZ(-10deg)}
+		100% {transform: rotateZ(0deg)}
+	}*/
+	@keyframes wiggleShort {
+		0%   {transform: rotateZ(-15deg)}
+		50%  {transform: rotateZ(15deg)}
+		100% {transform: rotateZ(-15deg)}
+	}
 	.closeButton {
 		pointer-events: auto; 
 		font-size: min(6vw, 6vh);
 		float:right;
 		cursor:pointer;
-		
+
+/*		transition: transform 1s !important;*/
 
 	}
 	.closeButton:hover {
-		transform: rotateZ(45deg);
-		
+/*		transform: rotateZ(-10deg);*/
+		animation-name: wiggleShort;
+	 	animation-duration: 2s;
+	 	animation-iteration-count: infinite;
+	 	animation-timing-function: ease-in-out;
+	 	animation-delay: -1.5s;
 	}
 
 
