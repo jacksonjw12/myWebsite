@@ -516,16 +516,17 @@ function update(dtMillis, isAntiGrav) {
 }
 
 const targetFpsRange = [60, 120] // within this range dont touch the amount of points on the screen.
+const bufferFPS = 10;
 let fps120HzCapable = false;
 let diffPointsForFps = [];
 const fpsPointStep = 5;
 let goodFPSStreak = 0;
 const goodFPSStreakAmount = 100;
-const minPoints = 20;
+const minPoints = 30;
 function maybeImproveFPS(fpsAvg) {
 	
 
-	if(fpsAvg < targetFpsRange[fps120HzCapable ? 1 : 0] && state.points.length > minPoints) {
+	if(fpsAvg < targetFpsRange[fps120HzCapable ? 1 : 0] - bufferFPS && state.points.length > minPoints) {
 		// remove points if fps is struggling.
 		console.log("FPS: Need to remove some points");
 		if(state.points.length >= fpsPointStep) {
