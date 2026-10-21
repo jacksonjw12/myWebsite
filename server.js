@@ -1,44 +1,42 @@
-var http = require("http");
-var url = require("url");
-var request = require("request");
-var fs = require('fs');
-function start() {
+// Minimal static file server for public/. No dependencies.
+import { createServer } from 'node:http';
+import { readFile } from 'node:fs/promises';
+import { extname, join, normalize } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
-	var express = require('express');
-	app = express();
-	// var bodyParser = require('body-parser')
-	
-	
-	
+const ROOT = fileURLToPath(new URL('./public/', import.meta.url));
+// Production (linux box) historically listens on 8088 behind a proxy.
+const PORT = process.env.PORT ?? (process.platform === 'linux' ? 8088 : 8080);
 
-	// app.use(express.static(__dirname + '/grandma'));
+const TYPES = {
+  '.html': 'text/html; charset=utf-8',
+  '.css': 'text/css; charset=utf-8',
+  '.js': 'text/javascript; charset=utf-8',
+  '.json': 'application/json',
+  '.svg': 'image/svg+xml',
+  '.png': 'image/png',
+  '.jpg': 'image/jpeg',
+  '.webp': 'image/webp',
+  '.ico': 'image/x-icon',
+  '.pdf': 'application/pdf',
+};
 
-	app.get('/', function (req, res) {
-		res.sendFile(__dirname + '/statics/index.html')
-	});
-	app.use(express.static(__dirname + '/statics'));
+// Friendly aliases for old links.
+const ROUTES = { '/': '/index.html', '/resume': '/media/resume.pdf' };
 
-	app.get('/aboutMe', function (req, res) {
-		res.sendFile(__dirname + '/statics/aboutMe.html')
-	});
+createServer(async (req, res) => {
+  const { pathname } = new URL(req.url, 'http://localhost');
 
-	app.get('/resume', function(req,res) {
-	
-		  res.sendFile(__dirname + '/statics/resume.html')
-		
-	})
-	
-	
-	var port = 8080;
-	if(process.platform == "linux"){
-		port = 8088
-	}
-
-	var server = app.listen(port);
-	
-
-	
-	console.log("Server has started");
-}
-
-exports.start = start;
+  try {
+    const path = normalize(join(ROOT, decodeURIComponent(ROUTES[pathname] ?? pathname)));
+    if (!path.startsWith(ROOT)) throw new Error('outside root');
+    const body = await readFile(path);
+    res.writeHead(200, {
+      'Content-Type': TYPES[extname(path)] ?? 'application/octet-stream',
+      'Cache-Control': 'no-cache',
+    });
+    res.end(body);
+  } catch {
+    res.writeHead(404, { 'Content-Type': 'text/plain' }).end('Not found');
+  }
+}).listen(PORT, () => console.log(`Serving public/ on http://localhost:${PORT}`));
