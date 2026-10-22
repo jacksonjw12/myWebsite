@@ -112,7 +112,19 @@ export function mountDevPane() {
   mounted = true;
   const pane = document.createElement('aside');
   pane.className = 'dev-pane';
-  pane.innerHTML = '<strong>Dev</strong>';
+  pane.innerHTML = `
+    <div class="dev-pane-head">
+      <strong>Dev</strong>
+      <button type="button" class="dev-pane-close" aria-label="Close dev pane">
+        <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4 4l8 8M12 4l-8 8"/></svg>
+      </button>
+    </div>`;
+  // Closing removes the pane; the Konami code (or a reload in dev mode) brings it back.
+  pane.querySelector('.dev-pane-close').addEventListener('click', () => {
+    clearInterval(refreshTimer);
+    pane.remove();
+    mounted = false;
+  });
 
   const hints = [];
   const refreshHints = () => hints.forEach((refresh) => refresh());
@@ -149,6 +161,6 @@ export function mountDevPane() {
   }
 
   refreshHints();
-  setInterval(refreshHints, 500); // keeps the live render stats current
+  const refreshTimer = setInterval(refreshHints, 500); // keeps the live render stats current
   document.body.append(pane);
 }
