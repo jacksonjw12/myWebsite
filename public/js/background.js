@@ -108,6 +108,14 @@ const MIN_SMOOTH_FPS = 50;
 // Viewports whose shorter side is at least this wide (CSS px) get full-size diamonds.
 const FULL_SIZE_SIDE = 700;
 
+// Background palettes, picked by the system light/dark preference.
+const THEMES = {
+  light: { paper: '#f9fcf8', pale: '#e2f1e4', mid: '#3f8f5a', deep: '#287545' },
+  dark: { paper: '#0b1a12', pale: '#11261a', mid: '#317a4d', deep: '#2b7a4a' },
+};
+const darkScheme = matchMedia('(prefers-color-scheme: dark)');
+const rgb = (hex) => [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16) / 255);
+
 // JS name → GLSL uniform name, looked up once per compiled shader variant.
 const UNIFORMS = {
   buffer: 'uBuffer',
@@ -125,6 +133,10 @@ const UNIFORMS = {
   stepB: 'uStepB',
   hops: 'uHops',
   sizeScale: 'uSizeScale',
+  paper: 'uPaper',
+  pale: 'uPale',
+  mid: 'uMid',
+  deep: 'uDeep',
   rect: 'uRect',
   lens: 'uLens',
   frost: 'uFrost',
@@ -169,10 +181,11 @@ uniform int uLensCount;
 const float LOOP_SLOTS = ${PULSE_LOOP.slots.toFixed(1)};
 const float LOOP_PAIRS = ${PULSE_LOOP.pairs.toFixed(1)};
 
-const vec3 PAPER = vec3(0.976, 0.988, 0.973);
-const vec3 PALE  = vec3(0.886, 0.945, 0.894);
-const vec3 MID   = vec3(0.247, 0.561, 0.353);
-const vec3 DEEP  = vec3(0.157, 0.459, 0.271);
+// Palette (see THEMES): paper and pale argyle fill, mid lattice lines, deep stripes.
+uniform vec3 uPaper;
+uniform vec3 uPale;
+uniform vec3 uMid;
+uniform vec3 uDeep;
 
 // Hash without sine (Dave Hoskins), stable across GPUs. Returns 0–1.
 float hash(vec3 p) {
@@ -277,9 +290,9 @@ float layerLine(vec2 q, vec4 basis, vec2 phase, vec4 stepA, vec4 stepB, float la
 vec3 scene(vec2 p, float aa) {
   vec2 q = p - uCenter;
   vec2 far = lattice(q, uBasis[0], uPhase[0], 0.0, uStepA[0], uStepB[0], false);
-  vec3 color = mix(PAPER, PALE, mix(0.5, far.y, min(far.x / aa, 1.0)));
-  color = mix(color, MID, 0.8 * layerLine(q, uBasis[1], uPhase[1], uStepA[1], uStepB[1], 1.0, 3.0, aa));
-  color = mix(color, DEEP, 0.3 * layerLine(q, uBasis[2], uPhase[2], uStepA[2], uStepB[2], 2.0, 18.0 * uSizeScale, aa));
+  vec3 color = mix(uPaper, uPale, mix(0.5, far.y, min(far.x / aa, 1.0)));
+  color = mix(color, uMid, 0.8 * layerLine(q, uBasis[1], uPhase[1], uStepA[1], uStepB[1], 1.0, 3.0, aa));
+  color = mix(color, uDeep, 0.3 * layerLine(q, uBasis[2], uPhase[2], uStepA[2], uStepB[2], 2.0, 18.0 * uSizeScale, aa));
   return color;
 }
 
@@ -354,6 +367,11 @@ export function startBackground(canvas, fx = DEFAULT_FX) {
     gl.uniform4fv(u.basis, normals.flat(2));
     gl.uniform1f(u.sizeScale, sizeScale);
   }
+  function setThemeUniforms() {
+    const theme = THEMES[darkScheme.matches ? 'dark' : 'light'];
+    for (const name of ['paper', 'pale', 'mid', 'deep']) gl.uniform3fv(u[name], rgb(theme[name]));
+  }
+  darkScheme.addEventListener('change', setThemeUniforms);
 
   // Shader variants, compiled on first use. Uniforms a variant compiles out
   // have null locations, and setting those is a harmless no-op.
@@ -375,6 +393,7 @@ export function startBackground(canvas, fx = DEFAULT_FX) {
     gl.useProgram(program);
     u = locations;
     variantKey = key;
+    setThemeUniforms();
     if (width) {
       setSizeUniforms();
       setViewUniforms();

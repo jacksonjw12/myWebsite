@@ -6,6 +6,18 @@ if (startBackground(document.getElementById('background'), fx)) {
 }
 if (devMode) mountDevPane();
 
+// Easter egg: the Konami code opens the dev pane for this visit.
+const KONAMI = ['arrowup', 'arrowup', 'arrowdown', 'arrowdown', 'arrowleft', 'arrowright', 'arrowleft', 'arrowright', 'b', 'a'];
+let konamiProgress = 0;
+addEventListener('keydown', (e) => {
+  const key = e.key.toLowerCase();
+  konamiProgress = key === KONAMI[konamiProgress] ? konamiProgress + 1 : key === KONAMI[0] ? 1 : 0;
+  if (konamiProgress === KONAMI.length) {
+    konamiProgress = 0;
+    mountDevPane();
+  }
+});
+
 // Specular sheen on the glass card follows the pointer.
 const card = document.querySelector('.card');
 if (matchMedia('(hover: hover)').matches) {

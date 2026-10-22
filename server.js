@@ -22,7 +22,11 @@ const TYPES = {
 };
 
 // Friendly aliases for old links.
-const ROUTES = { '/': '/index.html', '/resume': '/media/resume.pdf' };
+const ROUTES = {
+  '/': '/index.html',
+  '/resume': '/media/resume.pdf',
+  '/favicon.ico': '/media/favicon-32.png', // browsers request this by default
+};
 
 createServer(async (req, res) => {
   const { pathname } = new URL(req.url, 'http://localhost');

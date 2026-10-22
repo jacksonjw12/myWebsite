@@ -105,7 +105,11 @@ function save() {
   } catch {}
 }
 
+let mounted = false;
+
 export function mountDevPane() {
+  if (mounted) return;
+  mounted = true;
   const pane = document.createElement('aside');
   pane.className = 'dev-pane';
   pane.innerHTML = '<strong>Dev</strong>';
