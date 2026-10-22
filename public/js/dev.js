@@ -39,6 +39,15 @@ const CONTROLS = [
   { key: 'pulseMove', label: 'Move', parent: 'pulse', min: 0.2, max: 6, step: 0.1, format: (v) => `${v}s` },
   { key: 'pulseJitter', label: 'Jitter', parent: 'pulse', min: 0, max: 3, step: 0.1, format: (v) => `±${v}s` },
   {
+    key: 'pulseDensityStart',
+    label: 'Start',
+    parent: 'pulse',
+    min: 0.005,
+    max: 0.5,
+    step: 0.005,
+    format: (v) => `${+(v * 100).toFixed(1)}%`,
+  },
+  {
     key: 'pulseDensity',
     label: 'Density',
     parent: 'pulse',
@@ -47,15 +56,36 @@ const CONTROLS = [
     step: 0.005,
     format: (v) => `${+(v * 100).toFixed(1)}%`,
   },
+  { key: 'pulseDensityRamp', label: 'Ramp', parent: 'pulse', min: 0, max: 60, step: 1, format: (v) => `${v}s` },
+  { hint: () => `Density now ${+(stats.pulseDensity * 100).toFixed(1)}%`, parent: 'pulse' },
   {
     hint: () => `Moves take ${moveDuration(fx, 0).toFixed(1)}–${moveDuration(fx, 1).toFixed(1)}s`,
     parent: 'pulse',
   },
-  { key: 'renderScale', label: 'Min res', min: 1, max: 4, step: 0.25, format: (v) => `${v}×` },
+  { key: 'adaptiveRes', label: 'Adaptive resolution' },
+  {
+    key: 'renderMax',
+    label: 'Start',
+    parent: 'adaptiveRes',
+    min: 1,
+    max: 4,
+    step: 0.25,
+    format: (v) => `${v}× dpr`,
+  },
+  { key: 'renderScale', label: 'Floor', parent: 'adaptiveRes', min: 1, max: 4, step: 0.25, format: (v) => `${v} px` },
   {
     hint: () => `${stats.fps} fps, worst frame ${stats.worstMs}ms, ${stats.scale.toFixed(2)} px per CSS px`,
-    parent: 'renderScale',
+    parent: 'adaptiveRes',
   },
+  {
+    key: 'smallScreenScale',
+    label: 'Phone size',
+    min: 0.3,
+    max: 1,
+    step: 0.05,
+    format: (v) => `${Math.round(v * 100)}%`,
+  },
+  { hint: () => `Diamonds at ${Math.round(stats.sizeScale * 100)}% on this screen`, parent: 'smallScreenScale' },
 ];
 
 export const fx = { ...DEFAULT_FX };

@@ -16,9 +16,10 @@
 
 // Defaults for everyone; the dev pane (see dev.js) can override them live.
 // Pulse timing: time is split into `pulseSlot`-second slots. In each slot a
-// `pulseDensity` fraction of lines, picked at random, sweeps once,
-// starting at a random moment and taking `pulseMove` ± `pulseJitter` seconds
-// (at least MIN_MOVE, at most one slot).
+// fraction of lines, picked at random, sweeps once, starting at a random
+// moment and taking `pulseMove` ± `pulseJitter` seconds (at least MIN_MOVE, at
+// most one slot). That fraction eases from `pulseDensityStart` to
+// `pulseDensity` over the first `pulseDensityRamp` seconds on the page.
 export const DEFAULT_FX = {
   drift: true,
   driftSync: false,
@@ -32,16 +33,22 @@ export const DEFAULT_FX = {
   pulseSlot: 6,
   pulseMove: 5,
   pulseJitter: 1,
-  pulseDensity: 0.05,
-  // Minimum render pixels per CSS pixel. Standard screens get 2 (supersampled
-  // edges); high-density screens (Retina, phones) already have at least that
-  // and render at their own density rather than a multiple of it, which would
-  // cost 4–9× the pixels for no visible gain.
+  pulseDensity: 0.25,
+  pulseDensityStart: 0.1,
+  pulseDensityRamp: 15, // s
+  // Resolution: with adaptiveRes, start at renderMax × the device pixel ratio
+  // and step down while frames drop, to no less than renderScale render
+  // pixels per CSS pixel. Without it, render at max(device ratio, renderScale).
+  adaptiveRes: true,
+  renderMax: 2,
   renderScale: 2,
+  // Diamonds shrink on small screens, down to this fraction of full size once
+  // the viewport's shorter side is this narrow (FULL_SIZE_SIDE sets full size).
+  smallScreenScale: 0.6,
 };
 
-// Live render stats for the dev pane, updated once a second.
-export const stats = { fps: 0, worstMs: 0, scale: 0 };
+// Live render stats for the dev pane.
+export const stats = { fps: 0, worstMs: 0, scale: 0, pulseDensity: 0, sizeScale: 1 };
 
 // Per layer: diamond cell size (CSS px); drift speed (CSS px/s) of the "/" and
 // "\" line families, each across its own lines; and how strongly it follows
@@ -87,8 +94,19 @@ const LENSES = {
 };
 const MAX_LENSES = 8;
 
-// Stay under ~16M pixels (iOS Safari's canvas limit) whatever fx.renderScale asks for.
+// Stay under ~16M pixels (iOS Safari's canvas limit) whatever resolution is asked for.
 const MAX_PIXELS = 16_000_000;
+// Adaptive resolution: measure fps over 1 s windows (after SETTLE_MS of grace
+// following start, resizes and returns), and step resolution down by
+// RES_STEP when fps falls below max(MIN_SMOOTH_FPS, 90% of the best seen).
+const SETTLE_MS = 2000;
+// A frame gap this long means the device slept rather than just rendered a
+// slow frame, so adaptive resolution grants a fresh settle period.
+const WAKE_GAP = 5;
+const RES_STEP = 0.8;
+const MIN_SMOOTH_FPS = 50;
+// Viewports whose shorter side is at least this wide (CSS px) get full-size diamonds.
+const FULL_SIZE_SIDE = 700;
 
 // JS name → GLSL uniform name, looked up once per compiled shader variant.
 const UNIFORMS = {
@@ -106,6 +124,7 @@ const UNIFORMS = {
   stepA: 'uStepA',
   stepB: 'uStepB',
   hops: 'uHops',
+  sizeScale: 'uSizeScale',
   rect: 'uRect',
   lens: 'uLens',
   frost: 'uFrost',
@@ -141,6 +160,7 @@ uniform float uDriftDensity; // local drift: fraction of each cycle a line spend
 uniform vec4 uStepA[${LAYERS.length}];
 uniform vec4 uStepB[${LAYERS.length}];
 uniform float uHops;       // local drift hops per line spacing
+uniform float uSizeScale;  // diamond size factor (smaller on small screens)
 uniform vec4 uRect[${MAX_LENSES}];  // center.xy, half-size.xy (CSS px)
 uniform vec4 uLens[${MAX_LENSES}];  // radius, bevel, strength, magnify
 uniform float uFrost[${MAX_LENSES}];
@@ -259,7 +279,7 @@ vec3 scene(vec2 p, float aa) {
   vec2 far = lattice(q, uBasis[0], uPhase[0], 0.0, uStepA[0], uStepB[0], false);
   vec3 color = mix(PAPER, PALE, mix(0.5, far.y, min(far.x / aa, 1.0)));
   color = mix(color, MID, 0.8 * layerLine(q, uBasis[1], uPhase[1], uStepA[1], uStepB[1], 1.0, 3.0, aa));
-  color = mix(color, DEEP, 0.3 * layerLine(q, uBasis[2], uPhase[2], uStepA[2], uStepB[2], 2.0, 18.0, aa));
+  color = mix(color, DEEP, 0.3 * layerLine(q, uBasis[2], uPhase[2], uStepA[2], uStepB[2], 2.0, 18.0 * uSizeScale, aa));
   return color;
 }
 
@@ -317,11 +337,23 @@ export function startBackground(canvas, fx = DEFAULT_FX) {
   if (!gl) return false;
 
   // Normals of each layer's "/" and "\" families, scaled so dot(p, n) counts
-  // lines. Both families of a layer share the same line spacing.
-  const normals = LAYERS.map(({ cell }) => [
-    [1 / cell[0], 1 / cell[1]],
-    [1 / cell[0], -1 / cell[1]],
-  ]);
+  // lines; both families of a layer share the same line spacing. Cells shrink
+  // by sizeScale on small screens.
+  let normals, sizeScale, appliedSmallScale;
+  function updateSize() {
+    appliedSmallScale = fx.smallScreenScale;
+    sizeScale = Math.min(1, Math.max(fx.smallScreenScale, Math.min(width, height) / FULL_SIZE_SIDE));
+    stats.sizeScale = sizeScale;
+    normals = LAYERS.map(({ cell }) => [
+      [1 / (cell[0] * sizeScale), 1 / (cell[1] * sizeScale)],
+      [1 / (cell[0] * sizeScale), -1 / (cell[1] * sizeScale)],
+    ]);
+    setSizeUniforms();
+  }
+  function setSizeUniforms() {
+    gl.uniform4fv(u.basis, normals.flat(2));
+    gl.uniform1f(u.sizeScale, sizeScale);
+  }
 
   // Shader variants, compiled on first use. Uniforms a variant compiles out
   // have null locations, and setting those is a harmless no-op.
@@ -343,8 +375,10 @@ export function startBackground(canvas, fx = DEFAULT_FX) {
     gl.useProgram(program);
     u = locations;
     variantKey = key;
-    gl.uniform4fv(u.basis, normals.flat(2));
-    if (width) setViewUniforms();
+    if (width) {
+      setSizeUniforms();
+      setViewUniforms();
+    }
     return true;
   }
   if (!useVariant()) return false;
@@ -377,21 +411,65 @@ export function startBackground(canvas, fx = DEFAULT_FX) {
 
   const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
   const pointer = { x: 0, y: 0, targetX: 0, targetY: 0 };
-  let lastFrame, renderScale;
+  let lastFrame;
   let clock = 0, rampStart, resuming = true;
   let statsStart, statsFrames = 0, statsWorst = 0;
+  // Resolution in render pixels per CSS pixel, and adaptive-resolution state.
+  let level, resolutionKey, settleUntil = 0, windowStart, windowFrames = 0, bestFps = 0;
 
   function resize() {
     width = innerWidth;
     height = innerHeight;
-    renderScale = fx.renderScale;
-    const scale = Math.min(Math.max(devicePixelRatio || 1, renderScale), Math.sqrt(MAX_PIXELS / (width * height)));
+    updateSize();
+    const scale = Math.min(level, Math.sqrt(MAX_PIXELS / (width * height)));
     canvas.width = Math.round(width * scale);
     canvas.height = Math.round(height * scale);
     // The browser may clamp the drawing buffer, so measure what we actually got.
     gl.viewport(0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight);
     setViewUniforms();
     stats.scale = gl.drawingBufferWidth / width;
+    settleUntil = performance.now() + SETTLE_MS;
+  }
+
+  // (Re)start the resolution policy from the top; runs at start and when its
+  // dev-pane settings change.
+  function resetResolution() {
+    resolutionKey = `${fx.adaptiveRes}/${fx.renderMax}/${fx.renderScale}`;
+    const dpr = devicePixelRatio || 1;
+    level = fx.adaptiveRes ? dpr * fx.renderMax : Math.max(dpr, fx.renderScale);
+    bestFps = 0;
+    resize();
+  }
+
+  // Adaptive resolution: once settled, count frames per 1 s window and step
+  // the resolution down whenever a window falls short. Never steps back up,
+  // so it can't oscillate.
+  function adaptResolution(now) {
+    if (!fx.adaptiveRes || now < settleUntil) {
+      windowStart = now;
+      windowFrames = 0;
+      return;
+    }
+    windowFrames++;
+    if (now - windowStart < 1000) return;
+    const fps = (windowFrames * 1000) / (now - windowStart);
+    windowStart = now;
+    windowFrames = 0;
+    bestFps = Math.max(bestFps, fps);
+    const floor = Math.min(fx.renderScale, (devicePixelRatio || 1) * fx.renderMax);
+    if (fps < Math.max(MIN_SMOOTH_FPS, 0.9 * bestFps) && level > floor) {
+      level = Math.max(floor, level * RES_STEP);
+      resize();
+    }
+  }
+
+  // Pulse density for the slot containing time t: eases from the start
+  // density to the full density over the ramp. It's held for a whole slot,
+  // because changing it mid-slot would pop sweeps in or out halfway.
+  function pulseDensityAt(t) {
+    const slotStart = Math.floor(t / fx.pulseSlot) * fx.pulseSlot;
+    const x = Math.min(slotStart / fx.pulseDensityRamp, 1);
+    return fx.pulseDensityStart + (fx.pulseDensity - fx.pulseDensityStart) * x * x * (3 - 2 * x);
   }
 
   // Size-dependent uniforms; set on resize and whenever a variant is activated.
@@ -417,6 +495,9 @@ export function startBackground(canvas, fx = DEFAULT_FX) {
   function frame(now) {
     let dt = lastFrame === undefined ? 0 : (now - lastFrame) / 1000;
     lastFrame = now;
+    // Slow frames still count toward adaptive resolution; only a real return
+    // (tab shown, back/forward, waking) restarts its settle period.
+    if (resuming || dt > WAKE_GAP) settleUntil = now + SETTLE_MS;
     if (resuming || dt > RESUME_GAP) {
       resuming = false;
       rampStart = now;
@@ -424,13 +505,15 @@ export function startBackground(canvas, fx = DEFAULT_FX) {
     }
     recordStats(now, dt);
     useVariant();
+    if (`${fx.adaptiveRes}/${fx.renderMax}/${fx.renderScale}` !== resolutionKey) resetResolution();
+    else adaptResolution(now);
+    if (fx.smallScreenScale !== appliedSmallScale) updateSize();
     const ramp = Math.min((now - rampStart) / 1000 / RAMP_UP, 1);
     clock += Math.min(dt, MAX_STEP) * ramp * ramp * (3 - 2 * ramp);
     const t = reducedMotion ? 0 : clock;
 
     // Exponential ease toward the pointer, scaled by elapsed time so it feels
     // the same at any frame rate.
-    if (fx.renderScale !== renderScale) resize();
     const ease = 1 - Math.exp(-dt / POINTER_SMOOTHING);
     pointer.x += (pointer.targetX - pointer.x) * ease;
     pointer.y += (pointer.targetY - pointer.y) * ease;
@@ -438,12 +521,14 @@ export function startBackground(canvas, fx = DEFAULT_FX) {
     LAYERS.forEach(({ drift, depth }, i) => {
       // The pointer shifts the whole lattice; drift slides each family across
       // its lines — all together, or (driftSync) each line stepping on its own.
+      // Drift speeds scale with the diamonds, so motion keeps its character.
       const [n1, n2] = normals[i];
       const ox = pointer.x * depth * POINTER_PARALLAX;
       const oy = pointer.y * depth * POINTER_PARALLAX;
       const linesPerPx = Math.hypot(...n1);
-      const slide = fx.drift && !fx.driftSync ? t * linesPerPx * fx.driftSpeed : 0;
-      const local = (speed) => localStep(t, fx.drift && fx.driftSync ? speed * fx.driftSpeed : 0, linesPerPx);
+      const speed = fx.driftSpeed * sizeScale;
+      const slide = fx.drift && !fx.driftSync ? t * linesPerPx * speed : 0;
+      const local = (drift) => localStep(t, fx.drift && fx.driftSync ? drift * speed : 0, linesPerPx);
       stepsA.set(local(drift[0]), i * 4);
       stepsB.set(local(drift[1]), i * 4);
       // Wrap only after a whole pulse pattern (not one line) so each moving line
@@ -466,7 +551,8 @@ export function startBackground(canvas, fx = DEFAULT_FX) {
     gl.uniform1f(u.slot, fx.pulseSlot);
     gl.uniform1f(u.move, fx.pulseMove);
     gl.uniform1f(u.jitter, fx.pulseJitter);
-    gl.uniform1f(u.density, fx.pulseDensity);
+    stats.pulseDensity = pulseDensityAt(t);
+    gl.uniform1f(u.density, stats.pulseDensity);
     gl.uniform1f(u.driftDensity, fx.driftDensity);
     gl.uniform4fv(u.stepA, stepsA);
     gl.uniform4fv(u.stepB, stepsB);
@@ -493,7 +579,7 @@ export function startBackground(canvas, fx = DEFAULT_FX) {
       pointer.targetY = e.clientY / height - 0.5;
     });
   }
-  resize();
+  resetResolution();
   requestAnimationFrame(frame);
   return true;
 }
