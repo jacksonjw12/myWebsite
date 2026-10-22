@@ -33,7 +33,10 @@ export const DEFAULT_FX = {
   pulseMove: 5,
   pulseJitter: 1,
   pulseDensity: 0.05,
-  // Render at this multiple of the device pixel ratio; 2 supersamples edges.
+  // Minimum render pixels per CSS pixel. Standard screens get 2 (supersampled
+  // edges); high-density screens (Retina, phones) already have at least that
+  // and render at their own density rather than a multiple of it, which would
+  // cost 4–9× the pixels for no visible gain.
   renderScale: 2,
 };
 
@@ -87,12 +90,39 @@ const MAX_LENSES = 8;
 // Stay under ~16M pixels (iOS Safari's canvas limit) whatever fx.renderScale asks for.
 const MAX_PIXELS = 16_000_000;
 
+// JS name → GLSL uniform name, looked up once per compiled shader variant.
+const UNIFORMS = {
+  buffer: 'uBuffer',
+  scale: 'uScale',
+  center: 'uCenter',
+  basis: 'uBasis',
+  phase: 'uPhase',
+  pulseTime: 'uPulseTime',
+  slot: 'uSlot',
+  move: 'uMove',
+  jitter: 'uJitter',
+  density: 'uDensity',
+  driftDensity: 'uDriftDensity',
+  stepA: 'uStepA',
+  stepB: 'uStepB',
+  hops: 'uHops',
+  rect: 'uRect',
+  lens: 'uLens',
+  frost: 'uFrost',
+  lensCount: 'uLensCount',
+};
+
 const VERTEX = `
 attribute vec2 aPosition;
 void main() { gl_Position = vec4(aPosition, 0.0, 1.0); }
 `;
 
-const FRAGMENT = `
+// The fragment shader is compiled per combination of LOCAL_DRIFT and PULSE, so
+// disabled features cost nothing: as runtime branches their code still sat
+// in the shader and roughly doubled the cost of every pixel.
+const fragmentSource = ({ localDrift, pulse }) => `
+${localDrift ? '#define LOCAL_DRIFT' : ''}
+${pulse ? '#define PULSE' : ''}
 precision highp float;
 
 uniform vec2 uBuffer;      // drawing buffer size (px)
@@ -100,7 +130,6 @@ uniform vec2 uScale;       // buffer px per CSS px
 uniform vec2 uCenter;      // viewport center (CSS px); lattices are centred on it
 uniform vec4 uBasis[${LAYERS.length}];  // per layer: normals of the two line families, in lines per CSS px
 uniform vec2 uPhase[${LAYERS.length}];  // per-layer shift of each line family, in lines
-uniform float uPulseAmount; // 0 = single evenly spaced lines, 1 = full pulse
 uniform float uPulseTime;  // seconds, wrapped to the pulse loop
 uniform float uSlot;       // pulse slot length (s)
 uniform float uMove;       // pulse move duration (s)
@@ -160,12 +189,15 @@ float pulseGap(float k, float id) {
 // uDriftDensity of the cycle. Jitter is scaled to the step (same relative
 // spread as pulse moves), so short steps don't get erratic.
 float stepOffset(float k, float id, vec4 st) {
-  if (st.x == 0.0) return 0.0;
+#ifdef LOCAL_DRIFT
   vec3 seed = vec3(mod(k, LOOP_PAIRS), id + 16.0, st.y * 4.0);
   float spread = uJitter / uMove * (2.0 * hash(seed + vec3(0.0, 0.0, 1.0)) - 1.0);
   float duration = clamp(uDriftDensity * st.w * (1.0 + spread), ${MIN_MOVE.toFixed(3)}, st.w);
   float start = hash(seed + vec3(0.0, 0.0, 2.0)) * (st.w - duration);
   return smootherstep01(clamp((st.z - start) / duration, 0.0, 1.0));
+#else
+  return 0.0;
+#endif
 }
 
 // One family of parallel lines at coordinate u (in lines). Returns the
@@ -190,10 +222,12 @@ vec2 family(float u, float id, vec4 st, bool pulse) {
       belowPos = pk;
     }
   }
+#ifdef PULSE
   if (pulse) {
     float next = below + 1.0 + st.x * stepOffset(below + 1.0, id, st) / uHops;
     dist = min(dist, abs(base - mix(belowPos, next, pulseGap(below, id))));
   }
+#endif
   return vec2(dist, below);
 }
 
@@ -203,9 +237,8 @@ vec2 family(float u, float id, vec4 st, bool pulse) {
 // color when a sweep resets).
 vec2 lattice(vec2 p, vec4 basis, vec2 phase, float layer, vec4 stepA, vec4 stepB, bool pulse) {
   vec2 uv = vec2(dot(p, basis.xy), dot(p, basis.zw)) + phase;
-  bool pulsing = pulse && uPulseAmount > 0.0;
-  vec2 a = family(uv.x, layer * 2.0, stepA, pulsing);
-  vec2 b = family(uv.y, layer * 2.0 + 1.0, stepB, pulsing);
+  vec2 a = family(uv.x, layer * 2.0, stepA, pulse);
+  vec2 b = family(uv.y, layer * 2.0 + 1.0, stepB, pulse);
   float dist = min(a.x / length(basis.xy), b.x / length(basis.zw));
   return vec2(dist, mod(a.y + b.y, 2.0));
 }
@@ -260,14 +293,18 @@ void main() {
     frost = max(frost, uFrost[i]);
   }
 
-  vec3 color;
-  if (frost > 0.0) {
-    float blur = aa + frost;
-    color.r = scene(p + offset * 1.1, blur).r;
-    color.g = scene(p + offset, blur).g;
-    color.b = scene(p + offset * 0.9, blur).b;
-  } else {
-    color = scene(p, aa);
+  // Inside glass, sample red, green and blue at slightly different refraction
+  // strengths (chromatic aberration); elsewhere one sample. A loop around a
+  // single scene() call keeps one copy of the scene code in the shader:
+  // three inlined calls tripled its size and slowed every pixel.
+  vec3 color = vec3(0.0);
+  float blur = frost > 0.0 ? aa + frost : aa;
+  for (int i = 0; i < 3; i++) {
+    float channel = float(i);
+    if (frost == 0.0 && i > 0) break;
+    vec3 sample = scene(p + offset * (1.1 - 0.1 * channel), blur);
+    if (frost == 0.0) color = sample;
+    else color += sample * vec3(channel == 0.0, channel == 1.0, channel == 2.0);
   }
   gl_FragColor = vec4(color, 1.0);
 }
@@ -279,50 +316,49 @@ export function startBackground(canvas, fx = DEFAULT_FX) {
   const gl = canvas.getContext('webgl', { alpha: false, antialias: false });
   if (!gl) return false;
 
-  const program = createProgram(gl, VERTEX, FRAGMENT);
-  if (!program) return false;
-  gl.useProgram(program);
-
-  gl.bindBuffer(gl.ARRAY_BUFFER, gl.createBuffer());
-  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 3, -1, -1, 3]), gl.STATIC_DRAW);
-  gl.enableVertexAttribArray(0);
-  gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
-
-  const uniform = (name) => gl.getUniformLocation(program, name);
-  const u = {
-    buffer: uniform('uBuffer'),
-    scale: uniform('uScale'),
-    center: uniform('uCenter'),
-    basis: uniform('uBasis'),
-    phase: uniform('uPhase'),
-    pulseAmount: uniform('uPulseAmount'),
-    pulseTime: uniform('uPulseTime'),
-    slot: uniform('uSlot'),
-    move: uniform('uMove'),
-    jitter: uniform('uJitter'),
-    density: uniform('uDensity'),
-    driftDensity: uniform('uDriftDensity'),
-    stepA: uniform('uStepA'),
-    stepB: uniform('uStepB'),
-    hops: uniform('uHops'),
-    rect: uniform('uRect'),
-    lens: uniform('uLens'),
-    frost: uniform('uFrost'),
-    lensCount: uniform('uLensCount'),
-  };
-
-  const lensElements = [...document.querySelectorAll('[data-lens]')].slice(0, MAX_LENSES);
-  const radii = lensElements.map((el) => parseFloat(getComputedStyle(el).borderTopLeftRadius) || 0);
-  const rects = new Float32Array(MAX_LENSES * 4);
-  const lenses = new Float32Array(MAX_LENSES * 4);
-  const frosts = new Float32Array(MAX_LENSES);
   // Normals of each layer's "/" and "\" families, scaled so dot(p, n) counts
   // lines. Both families of a layer share the same line spacing.
   const normals = LAYERS.map(({ cell }) => [
     [1 / cell[0], 1 / cell[1]],
     [1 / cell[0], -1 / cell[1]],
   ]);
-  gl.uniform4fv(u.basis, normals.flat(2));
+
+  // Shader variants, compiled on first use. Uniforms a variant compiles out
+  // have null locations, and setting those is a harmless no-op.
+  const variants = new Map();
+  let u, variantKey, width, height;
+  function useVariant() {
+    const variant = { localDrift: fx.drift && fx.driftSync, pulse: fx.pulse };
+    const key = `${variant.localDrift}/${variant.pulse}`;
+    if (key === variantKey) return true;
+    if (!variants.has(key)) {
+      const program = createProgram(gl, VERTEX, fragmentSource(variant));
+      if (!program) return false;
+      const locations = Object.fromEntries(
+        Object.entries(UNIFORMS).map(([name, glslName]) => [name, gl.getUniformLocation(program, glslName)]),
+      );
+      variants.set(key, { program, locations });
+    }
+    const { program, locations } = variants.get(key);
+    gl.useProgram(program);
+    u = locations;
+    variantKey = key;
+    gl.uniform4fv(u.basis, normals.flat(2));
+    if (width) setViewUniforms();
+    return true;
+  }
+  if (!useVariant()) return false;
+
+  gl.bindBuffer(gl.ARRAY_BUFFER, gl.createBuffer());
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 3, -1, -1, 3]), gl.STATIC_DRAW);
+  gl.enableVertexAttribArray(0);
+  gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
+
+  const lensElements = [...document.querySelectorAll('[data-lens]')].slice(0, MAX_LENSES);
+  const radii = lensElements.map((el) => parseFloat(getComputedStyle(el).borderTopLeftRadius) || 0);
+  const rects = new Float32Array(MAX_LENSES * 4);
+  const lenses = new Float32Array(MAX_LENSES * 4);
+  const frosts = new Float32Array(MAX_LENSES);
   const phases = new Float32Array(LAYERS.length * 2);
   const stepsA = new Float32Array(LAYERS.length * 4);
   const stepsB = new Float32Array(LAYERS.length * 4);
@@ -341,7 +377,7 @@ export function startBackground(canvas, fx = DEFAULT_FX) {
 
   const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
   const pointer = { x: 0, y: 0, targetX: 0, targetY: 0 };
-  let width, height, lastFrame, renderScale;
+  let lastFrame, renderScale;
   let clock = 0, rampStart, resuming = true;
   let statsStart, statsFrames = 0, statsWorst = 0;
 
@@ -349,15 +385,20 @@ export function startBackground(canvas, fx = DEFAULT_FX) {
     width = innerWidth;
     height = innerHeight;
     renderScale = fx.renderScale;
-    const scale = Math.min((devicePixelRatio || 1) * renderScale, Math.sqrt(MAX_PIXELS / (width * height)));
+    const scale = Math.min(Math.max(devicePixelRatio || 1, renderScale), Math.sqrt(MAX_PIXELS / (width * height)));
     canvas.width = Math.round(width * scale);
     canvas.height = Math.round(height * scale);
     // The browser may clamp the drawing buffer, so measure what we actually got.
     gl.viewport(0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight);
+    setViewUniforms();
+    stats.scale = gl.drawingBufferWidth / width;
+  }
+
+  // Size-dependent uniforms; set on resize and whenever a variant is activated.
+  function setViewUniforms() {
     gl.uniform2f(u.buffer, gl.drawingBufferWidth, gl.drawingBufferHeight);
     gl.uniform2f(u.scale, gl.drawingBufferWidth / width, gl.drawingBufferHeight / height);
     gl.uniform2f(u.center, width / 2, height / 2);
-    stats.scale = gl.drawingBufferWidth / width;
   }
 
   function recordStats(now, dt) {
@@ -382,6 +423,7 @@ export function startBackground(canvas, fx = DEFAULT_FX) {
       dt = 0;
     }
     recordStats(now, dt);
+    useVariant();
     const ramp = Math.min((now - rampStart) / 1000 / RAMP_UP, 1);
     clock += Math.min(dt, MAX_STEP) * ramp * ramp * (3 - 2 * ramp);
     const t = reducedMotion ? 0 : clock;
@@ -420,7 +462,6 @@ export function startBackground(canvas, fx = DEFAULT_FX) {
     });
 
     gl.uniform2fv(u.phase, phases);
-    gl.uniform1f(u.pulseAmount, fx.pulse ? 1 : 0);
     gl.uniform1f(u.pulseTime, t % (fx.pulseSlot * PULSE_LOOP.slots));
     gl.uniform1f(u.slot, fx.pulseSlot);
     gl.uniform1f(u.move, fx.pulseMove);
@@ -457,9 +498,9 @@ export function startBackground(canvas, fx = DEFAULT_FX) {
   return true;
 }
 
-function createProgram(gl, vertexSource, fragmentSource) {
+function createProgram(gl, vertexSource, fragmentSrc) {
   const program = gl.createProgram();
-  for (const [type, source] of [[gl.VERTEX_SHADER, vertexSource], [gl.FRAGMENT_SHADER, fragmentSource]]) {
+  for (const [type, source] of [[gl.VERTEX_SHADER, vertexSource], [gl.FRAGMENT_SHADER, fragmentSrc]]) {
     const shader = gl.createShader(type);
     gl.shaderSource(shader, source);
     gl.compileShader(shader);

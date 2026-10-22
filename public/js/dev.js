@@ -51,7 +51,7 @@ const CONTROLS = [
     hint: () => `Moves take ${moveDuration(fx, 0).toFixed(1)}–${moveDuration(fx, 1).toFixed(1)}s`,
     parent: 'pulse',
   },
-  { key: 'renderScale', label: 'Render', min: 0.5, max: 2, step: 0.25, format: (v) => `${v}×` },
+  { key: 'renderScale', label: 'Min res', min: 1, max: 4, step: 0.25, format: (v) => `${v}×` },
   {
     hint: () => `${stats.fps} fps, worst frame ${stats.worstMs}ms, ${stats.scale.toFixed(2)} px per CSS px`,
     parent: 'renderScale',
