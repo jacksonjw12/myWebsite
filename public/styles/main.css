@@ -1,0 +1,301 @@
+:root {
+  color-scheme: light;
+  --bg: #f6faf5;
+  --text: #10291c;
+  --text-dim: rgb(16 41 28 / 0.74);
+  --shade: 20 60 35; /* rgb triplet for green-tinted shadows */
+  --font: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI Variable", "Segoe UI", system-ui, sans-serif;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  min-height: 100dvh;
+  display: grid;
+  place-items: center;
+  padding: max(24px, env(safe-area-inset-top)) 16px max(24px, env(safe-area-inset-bottom));
+  background: var(--bg);
+  color: var(--text);
+  font: 400 16px/1.5 var(--font);
+  -webkit-font-smoothing: antialiased;
+}
+
+#background {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: -1;
+}
+
+/* ---------- Liquid glass ---------- */
+
+/* Fallback (no WebGL): classic frosted glass. */
+.glass {
+  position: relative;
+  background: linear-gradient(160deg, rgb(255 255 255 / 0.6), rgb(255 255 255 / 0.3) 55%, rgb(255 255 255 / 0.45));
+  -webkit-backdrop-filter: blur(18px) saturate(160%);
+  backdrop-filter: blur(18px) saturate(160%);
+  box-shadow:
+    inset 0 1px 1px rgb(255 255 255 / 0.95),
+    inset 0 -1px 1px rgb(255 255 255 / 0.5),
+    inset 0 0 18px rgb(255 255 255 / 0.25),
+    0 20px 50px -18px rgb(var(--shade) / 0.45),
+    0 2px 6px rgb(var(--shade) / 0.12);
+}
+
+/* With WebGL, the background canvas refracts and frosts what's under each
+   lens, so the glass itself stays nearly clear. */
+.has-lens .glass {
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  background: linear-gradient(160deg, rgb(255 255 255 / 0.3), rgb(255 255 255 / 0.08) 55%, rgb(255 255 255 / 0.18));
+}
+
+/* Text and buttons sit on denser glass so they stay readable over the pattern. */
+.intro, .has-lens .intro {
+  background: linear-gradient(160deg, rgb(255 255 255 / 0.72), rgb(255 255 255 / 0.58));
+  box-shadow: inset 0 1px 1px rgb(255 255 255 / 0.9), 0 4px 16px -6px rgb(var(--shade) / 0.25);
+}
+
+/* Fixed sheen over a base color, so hover can transition the color alone
+   (gradients can't be transitioned and would flash clear). */
+.pill, .has-lens .pill {
+  background: linear-gradient(160deg, rgb(255 255 255 / 0.5), transparent 70%) rgb(255 255 255 / 0.68);
+}
+
+.pill:hover, .has-lens .pill:hover {
+  background-color: rgb(255 255 255 / 0.9);
+}
+
+/* Hairline rim that catches light at opposite corners. */
+.glass::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  padding: 1px;
+  border-radius: inherit;
+  pointer-events: none;
+  background: linear-gradient(135deg, rgb(255 255 255 / 0.95), rgb(255 255 255 / 0.3) 30%, rgb(var(--shade) / 0.14) 65%, rgb(255 255 255 / 0.75));
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  .glass, .has-lens .glass {
+    background: rgb(255 255 255 / 0.94);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+}
+
+/* ---------- Card ---------- */
+
+.card {
+  width: min(100%, 420px);
+  padding: 40px 28px 32px;
+  border-radius: 36px;
+  text-align: center;
+  text-shadow: 0 1px 1px rgb(255 255 255 / 0.6);
+  animation: settle 0.9s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+/* Fade the content rather than the card, so the lens and its glass stay in step. */
+.card > * { animation: fade 0.9s ease both; }
+
+/* Specular sheen that follows the pointer (set from JS). */
+.card::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background: radial-gradient(240px circle at var(--mx, 30%) var(--my, 0%), rgb(255 255 255 / 0.3), transparent 70%);
+}
+
+.avatar {
+  display: block;
+  width: 128px;
+  height: 128px;
+  margin: 0 auto;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid rgb(255 255 255 / 0.75);
+  box-shadow: 0 8px 24px rgb(var(--shade) / 0.3);
+}
+
+/* Keep click-drag from selecting or dragging the photo and buttons. */
+.avatar, .pill {
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-user-drag: none;
+  -webkit-touch-callout: none;
+}
+
+.intro {
+  margin-top: 20px;
+  padding: 18px 20px 20px;
+  border-radius: 24px;
+}
+
+h1 {
+  margin: 0 0 2px;
+  font-size: 30px;
+  font-weight: 650;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+}
+
+.role {
+  margin: 0;
+  color: var(--text-dim);
+  font-weight: 500;
+}
+
+.bio {
+  max-width: 30ch;
+  margin: 16px auto 0;
+  color: var(--text-dim);
+  font-size: 15px;
+}
+
+.links {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-top: 28px;
+}
+
+.pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 11px 16px;
+  border: 0;
+  border-radius: 999px;
+  color: var(--text);
+  font: inherit;
+  font-size: 15px;
+  font-weight: 550;
+  text-decoration: none;
+  cursor: pointer;
+  transition: transform 0.2s ease, background-color 0.2s ease;
+}
+
+.pill svg {
+  width: 18px;
+  height: 18px;
+  flex: none;
+}
+
+.pill:hover { transform: translateY(-1px); }
+
+.pill:active { transform: scale(0.97); }
+
+.pill:focus-visible {
+  outline: 2px solid var(--text);
+  outline-offset: 3px;
+}
+
+/* "Copied!" popup above the email button. */
+.tip {
+  position: absolute;
+  z-index: 1;
+  bottom: calc(100% + 10px);
+  left: 50%;
+  translate: -50% 4px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: rgb(16 41 28 / 0.9);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 500;
+  text-shadow: none;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease, translate 0.2s ease;
+}
+
+.tip::after {
+  content: "";
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  translate: -50% 0;
+  border: 6px solid transparent;
+  border-top-color: rgb(16 41 28 / 0.9);
+}
+
+.tip.show {
+  opacity: 1;
+  translate: -50% 0;
+}
+
+/* ---------- Dev pane (localhost or ?dev only) ---------- */
+
+.dev-pane {
+  position: fixed;
+  top: max(12px, env(safe-area-inset-top));
+  left: max(12px, env(safe-area-inset-left));
+  z-index: 10;
+  display: grid;
+  gap: 6px;
+  padding: 10px 14px 12px;
+  border-radius: 14px;
+  background: rgb(255 255 255 / 0.92);
+  box-shadow: 0 6px 20px -8px rgb(var(--shade) / 0.4);
+  font-size: 13px;
+}
+
+.dev-pane strong {
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+}
+
+.dev-pane label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+}
+
+.dev-pane input { accent-color: #2b7a4b; margin: 0; }
+
+.dev-pane .sub { padding-left: 22px; }
+
+.dev-pane .slider {
+  display: grid;
+  grid-template-columns: 52px 110px 40px;
+  gap: 8px;
+  color: var(--text-dim);
+}
+
+.dev-pane .hint {
+  color: var(--text-dim);
+  font-size: 12px;
+  font-style: italic;
+}
+
+.dev-pane output {
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+@keyframes settle {
+  from { transform: translateY(12px) scale(0.98); }
+}
+
+@keyframes fade {
+  from { opacity: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .card, .card > * { animation: none; }
+  .pill, .tip { transition: none; }
+}
